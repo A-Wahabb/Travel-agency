@@ -1,0 +1,49 @@
+{
+    "name": "travel-agency-backend",
+    "version": "1.0.0",
+    "description": "Backend API for Travel Agency Management System",
+    "main": "dist/server.js",
+    "scripts": {
+        "start": "node dist/server.js",
+        "dev": "nodemon src/server.ts",
+        "build": "tsc",
+        "seed": "ts-node src/scripts/seedSuperAdmin.ts",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "travel",
+        "agency",
+        "mern",
+        "backend",
+        "api",
+        "typescript"
+    ],
+    "author": "Your Name",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.2",
+        "mongoose": "^7.5.0",
+        "jsonwebtoken": "^9.0.2",
+        "bcryptjs": "^2.4.3",
+        "multer": "^1.4.5-lts.1",
+        "dotenv": "^16.3.1",
+        "cors": "^2.8.5",
+        "express-validator": "^7.0.1",
+        "morgan": "^1.10.0",
+        "helmet": "^7.0.0",
+        "express-rate-limit": "^6.10.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1",
+        "typescript": "^5.2.2",
+        "@types/node": "^20.8.0",
+        "@types/express": "^4.17.20",
+        "@types/mongoose": "^5.11.97",
+        "@types/jsonwebtoken": "^9.0.4",
+        "@types/bcryptjs": "^2.4.5",
+        "@types/multer": "^1.4.9",
+        "@types/cors": "^2.8.15",
+        "@types/morgan": "^1.9.8",
+        "ts-node": "^10.9.1"
+    }
+}
