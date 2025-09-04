@@ -152,6 +152,68 @@ POST {{baseUrl}}/api/students
 ```
 **Note:** For SuperAdmin, `officeId` is required, `agentId` is optional.
 
+## 📋 **Student Options Management**
+
+The student options system allows tracking the progress of a student's application process through various stages.
+
+### **Get Student Options**
+```json
+GET {{baseUrl}}/api/students/{{studentId}}/options
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Student options retrieved successfully",
+  "data": {
+    "_id": "student_id",
+    "name": "John Student",
+    "email": "john@example.com",
+    "studentOptions": {
+      "clients": true,
+      "initialPayment": true,
+      "documents": false,
+      "applications": false,
+      "offerLetterSecured": false,
+      "secondPaymentDone": false,
+      "visaApplication": false,
+      "visaSecured": false,
+      "finalPayment": false
+    }
+  }
+}
+```
+
+### **Update Student Options**
+```json
+PUT {{baseUrl}}/api/students/{{studentId}}/options
+{
+  "clients": true,
+  "initialPayment": true,
+  "documents": true,
+  "applications": false,
+  "offerLetterSecured": false,
+  "secondPaymentDone": false,
+  "visaApplication": false,
+  "visaSecured": false,
+  "finalPayment": false
+}
+```
+
+**Available Options:**
+- `clients`: Student has been registered as a client
+- `initialPayment`: Initial payment has been completed
+- `documents`: Required documents have been submitted
+- `applications`: Application forms have been submitted
+- `offerLetterSecured`: Offer letter has been received
+- `secondPaymentDone`: Second payment has been completed
+- `visaApplication`: Visa application has been submitted
+- `visaSecured`: Visa has been approved and secured
+- `finalPayment`: Final payment has been completed
+
+**Note:** Only include the options you want to update. Unspecified options will remain unchanged.
+
 ## 💳 **Payment Creation Examples**
 
 ### **Create Payment (Cash)**

@@ -6,7 +6,9 @@ import {
     createStudent,
     updateStudent,
     uploadDocument,
-    deleteStudent
+    deleteStudent,
+    updateStudentOptions,
+    getStudentOptions
 } from '../controllers/student';
 import {
     authenticateToken,
@@ -88,6 +90,45 @@ const documentValidation = [
         .withMessage('Invalid document type')
 ];
 
+const studentOptionsValidation = [
+    body('clients')
+        .optional()
+        .isBoolean()
+        .withMessage('Clients must be a boolean value'),
+    body('initialPayment')
+        .optional()
+        .isBoolean()
+        .withMessage('Initial payment must be a boolean value'),
+    body('documents')
+        .optional()
+        .isBoolean()
+        .withMessage('Documents must be a boolean value'),
+    body('applications')
+        .optional()
+        .isBoolean()
+        .withMessage('Applications must be a boolean value'),
+    body('offerLetterSecured')
+        .optional()
+        .isBoolean()
+        .withMessage('Offer letter secured must be a boolean value'),
+    body('secondPaymentDone')
+        .optional()
+        .isBoolean()
+        .withMessage('Second payment done must be a boolean value'),
+    body('visaApplication')
+        .optional()
+        .isBoolean()
+        .withMessage('Visa application must be a boolean value'),
+    body('visaSecured')
+        .optional()
+        .isBoolean()
+        .withMessage('Visa secured must be a boolean value'),
+    body('finalPayment')
+        .optional()
+        .isBoolean()
+        .withMessage('Final payment must be a boolean value')
+];
+
 // Routes
 router.get('/', authenticateToken, authorizeAgent, getStudents);
 router.get('/:id', authenticateToken, authorizeAgent, getStudent);
@@ -95,6 +136,10 @@ router.post('/', authenticateToken, createStudentValidation, validate, createStu
 router.put('/:id', authenticateToken, authorizeAgent, updateStudentValidation, validate, updateStudent);
 router.post('/:id/documents', authenticateToken, authorizeAgent, uploadSingleMiddleware, documentValidation, validate, uploadDocument);
 router.delete('/:id', authenticateToken, authorizeAgent, deleteStudent);
+
+// Student options routes
+router.get('/:id/options', authenticateToken, authorizeAgent, getStudentOptions);
+router.put('/:id/options', authenticateToken, authorizeAgent, studentOptionsValidation, validate, updateStudentOptions);
 
 export default router;
 

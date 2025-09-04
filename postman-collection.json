@@ -761,6 +761,62 @@
                             ]
                         }
                     }
+                },
+                {
+                    "name": "Get Student Options",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/options",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "options"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Student Options",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"clients\": true,\n  \"initialPayment\": true,\n  \"documents\": false,\n  \"applications\": false,\n  \"offerLetterSecured\": false,\n  \"secondPaymentDone\": false,\n  \"visaApplication\": false,\n  \"visaSecured\": false,\n  \"finalPayment\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/options",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "options"
+                            ]
+                        }
+                    }
                 }
             ]
         },

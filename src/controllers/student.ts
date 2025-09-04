@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Student from '../models/Student';
 import Agent from '../models/Agent';
 import Office from '../models/Office';
-import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument } from '../types';
+import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest } from '../types';
 import { getFileInfo } from '../middlewares/upload';
 
 // @desc    Get all students
@@ -491,6 +491,141 @@ export const deleteStudent = async (req: AuthenticatedRequest, res: Response): P
         });
     } catch (error) {
         console.error('Delete student error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Update student options
+// @route   PUT /api/students/:id/options
+// @access  Agent, Admin
+export const updateStudentOptions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const studentOptions: UpdateStudentOptionsRequest = req.body;
+
+        const student = await Student.findById(req.params.id);
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied'
+            });
+            return;
+        }
+
+        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied'
+            });
+            return;
+        }
+
+        // Update student options
+        if (studentOptions.clients !== undefined) student.studentOptions.clients = studentOptions.clients;
+        if (studentOptions.initialPayment !== undefined) student.studentOptions.initialPayment = studentOptions.initialPayment;
+        if (studentOptions.documents !== undefined) student.studentOptions.documents = studentOptions.documents;
+        if (studentOptions.applications !== undefined) student.studentOptions.applications = studentOptions.applications;
+        if (studentOptions.offerLetterSecured !== undefined) student.studentOptions.offerLetterSecured = studentOptions.offerLetterSecured;
+        if (studentOptions.secondPaymentDone !== undefined) student.studentOptions.secondPaymentDone = studentOptions.secondPaymentDone;
+        if (studentOptions.visaApplication !== undefined) student.studentOptions.visaApplication = studentOptions.visaApplication;
+        if (studentOptions.visaSecured !== undefined) student.studentOptions.visaSecured = studentOptions.visaSecured;
+        if (studentOptions.finalPayment !== undefined) student.studentOptions.finalPayment = studentOptions.finalPayment;
+
+        await student.save();
+        await student.populate('officeId', 'name address');
+        await student.populate('agentId', 'name email');
+
+        res.status(200).json({
+            success: true,
+            message: 'Student options updated successfully',
+            data: {
+                _id: student._id,
+                name: student.name,
+                email: student.email,
+                studentOptions: student.studentOptions
+            }
+        });
+    } catch (error) {
+        console.error('Update student options error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Get student options
+// @route   GET /api/students/:id/options
+// @access  Agent, Admin, SuperAdmin
+export const getStudentOptions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const student = await Student.findById(req.params.id)
+            .select('name email studentOptions');
+
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied'
+            });
+            return;
+        }
+
+        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied'
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Student options retrieved successfully',
+            data: {
+                _id: student._id,
+                name: student.name,
+                email: student.email,
+                studentOptions: student.studentOptions
+            }
+        });
+    } catch (error) {
+        console.error('Get student options error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'

@@ -52,6 +52,18 @@ export interface IStudent extends BaseDocument {
     status: 'active' | 'inactive' | 'pending' | 'completed';
     totalPaid?: number;
     totalAmount?: number;
+    // Student application stages/options
+    studentOptions: {
+        clients: boolean;
+        initialPayment: boolean;
+        documents: boolean;
+        applications: boolean;
+        offerLetterSecured: boolean;
+        secondPaymentDone: boolean;
+        visaApplication: boolean;
+        visaSecured: boolean;
+        finalPayment: boolean;
+    };
 }
 
 // Document interface
@@ -192,6 +204,18 @@ export interface CreateStudentRequest {
     dateOfBirth?: string;
     nationality?: string;
     passportNumber?: string;
+}
+
+export interface UpdateStudentOptionsRequest {
+    clients?: boolean;
+    initialPayment?: boolean;
+    documents?: boolean;
+    applications?: boolean;
+    offerLetterSecured?: boolean;
+    secondPaymentDone?: boolean;
+    visaApplication?: boolean;
+    visaSecured?: boolean;
+    finalPayment?: boolean;
 }
 
 export interface CreatePaymentRequest {

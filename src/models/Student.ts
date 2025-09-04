@@ -79,6 +79,44 @@ const studentSchema = new Schema<IStudentDocument>({
         type: String,
         enum: ['active', 'inactive', 'pending', 'completed'],
         default: 'active'
+    },
+    studentOptions: {
+        clients: {
+            type: Boolean,
+            default: false
+        },
+        initialPayment: {
+            type: Boolean,
+            default: false
+        },
+        documents: {
+            type: Boolean,
+            default: false
+        },
+        applications: {
+            type: Boolean,
+            default: false
+        },
+        offerLetterSecured: {
+            type: Boolean,
+            default: false
+        },
+        secondPaymentDone: {
+            type: Boolean,
+            default: false
+        },
+        visaApplication: {
+            type: Boolean,
+            default: false
+        },
+        visaSecured: {
+            type: Boolean,
+            default: false
+        },
+        finalPayment: {
+            type: Boolean,
+            default: false
+        }
     }
 }, {
     timestamps: true,
