@@ -12,7 +12,9 @@ import {
 } from '../controllers/student';
 import {
     authenticateToken,
-    authorizeAgent
+    authorizeAgent,
+    authorizeStudentAccess,
+    authorizeRoles
 } from '../middlewares/auth';
 import { uploadSingleMiddleware } from '../middlewares/upload';
 import validate from '../middlewares/validate';
@@ -131,15 +133,15 @@ const studentOptionsValidation = [
 
 // Routes
 router.get('/', authenticateToken, authorizeAgent, getStudents);
-router.get('/:id', authenticateToken, authorizeAgent, getStudent);
-router.post('/', authenticateToken, createStudentValidation, validate, createStudent);
-router.put('/:id', authenticateToken, authorizeAgent, updateStudentValidation, validate, updateStudent);
-router.post('/:id/documents', authenticateToken, authorizeAgent, uploadSingleMiddleware, documentValidation, validate, uploadDocument);
-router.delete('/:id', authenticateToken, authorizeAgent, deleteStudent);
+router.get('/:id', authenticateToken, authorizeStudentAccess, getStudent);
+router.post('/', authenticateToken, authorizeRoles('Agent', 'SuperAdmin'), createStudentValidation, validate, createStudent);
+router.put('/:id', authenticateToken, authorizeStudentAccess, updateStudentValidation, validate, updateStudent);
+router.post('/:id/documents', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent'), uploadSingleMiddleware, documentValidation, validate, uploadDocument);
+router.delete('/:id', authenticateToken, authorizeStudentAccess, deleteStudent);
 
 // Student options routes
-router.get('/:id/options', authenticateToken, authorizeAgent, getStudentOptions);
-router.put('/:id/options', authenticateToken, authorizeAgent, studentOptionsValidation, validate, updateStudentOptions);
+router.get('/:id/options', authenticateToken, authorizeStudentAccess, getStudentOptions);
+router.put('/:id/options', authenticateToken, authorizeStudentAccess, studentOptionsValidation, validate, updateStudentOptions);
 
 export default router;
 

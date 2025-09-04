@@ -81,43 +81,10 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
 // @access  Agent, Admin, SuperAdmin
 export const getStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
         const student = await Student.findById(req.params.id)
             .populate('officeId', 'name address')
             .populate('agentId', 'name email')
             .select('-password');
-
-        if (!student) {
-            res.status(404).json({
-                success: false,
-                message: 'Student not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
 
         res.status(200).json({
             success: true,
@@ -138,22 +105,6 @@ export const getStudent = async (req: AuthenticatedRequest, res: Response): Prom
 // @access  Agent, SuperAdmin
 export const createStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
-        if (req.user.role !== 'Agent' && req.user.role !== 'SuperAdmin') {
-            res.status(403).json({
-                success: false,
-                message: 'Only agents and super admins can create students'
-            });
-            return;
-        }
-
         const { name, email, password, officeId, agentId, phone, dateOfBirth, nationality, passportNumber }: CreateStudentRequest = req.body;
 
         // Check if email already exists
@@ -170,20 +121,20 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
         let finalAgentId: string;
 
         // Handle role-based logic
-        if (req.user.role === 'Agent') {
+        if (req.user!.role === 'Agent') {
             // Agent: auto-set office to agent's office, agentId to current user
-            finalOfficeId = req.user.officeId!;
-            finalAgentId = req.user.id;
+            finalOfficeId = req.user!.officeId!;
+            finalAgentId = req.user!.id;
 
             // Validate that provided officeId matches agent's office (if provided)
-            if (officeId && officeId !== req.user.officeId) {
+            if (officeId && officeId !== req.user!.officeId) {
                 res.status(403).json({
                     success: false,
                     message: 'Can only create students for your own office'
                 });
                 return;
             }
-        } else if (req.user.role === 'SuperAdmin') {
+        } else if (req.user!.role === 'SuperAdmin') {
             // SuperAdmin: officeId is required, agentId is optional
             if (!officeId) {
                 res.status(400).json({
@@ -194,7 +145,7 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             }
 
             finalOfficeId = officeId;
-            finalAgentId = agentId || req.user.id; // Use provided agentId or default to SuperAdmin
+            finalAgentId = agentId || req.user!.id; // Use provided agentId or default to SuperAdmin
         }
 
         // Validate office exists
@@ -208,7 +159,7 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
         }
 
         // Validate agent exists and belongs to the office (if provided)
-        if (finalAgentId && finalAgentId !== req.user.id) {
+        if (finalAgentId && finalAgentId !== req.user!.id) {
             const agent = await Agent.findById(finalAgentId);
             if (!agent) {
                 res.status(400).json({
@@ -276,14 +227,6 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
 // @access  Agent, Admin
 export const updateStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
         const { name, email, phone, dateOfBirth, nationality, passportNumber, status } = req.body;
 
         const student = await Student.findById(req.params.id);
@@ -291,23 +234,6 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
             res.status(404).json({
                 success: false,
                 message: 'Student not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
             });
             return;
         }
@@ -372,22 +298,6 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
 // @access  Agent
 export const uploadDocument = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
-        if (req.user.role !== 'Agent') {
-            res.status(403).json({
-                success: false,
-                message: 'Only agents can upload documents'
-            });
-            return;
-        }
-
         const { documentType = 'other' } = req.body;
 
         if (!req.file) {
@@ -403,15 +313,6 @@ export const uploadDocument = async (req: AuthenticatedRequest, res: Response): 
             res.status(404).json({
                 success: false,
                 message: 'Student not found'
-            });
-            return;
-        }
-
-        // Check if agent owns this student
-        if (student.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
             });
             return;
         }
@@ -447,36 +348,11 @@ export const uploadDocument = async (req: AuthenticatedRequest, res: Response): 
 // @access  Agent, Admin
 export const deleteStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
         const student = await Student.findById(req.params.id);
         if (!student) {
             res.status(404).json({
                 success: false,
                 message: 'Student not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
             });
             return;
         }
@@ -503,14 +379,6 @@ export const deleteStudent = async (req: AuthenticatedRequest, res: Response): P
 // @access  Agent, Admin
 export const updateStudentOptions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
         const studentOptions: UpdateStudentOptionsRequest = req.body;
 
         const student = await Student.findById(req.params.id);
@@ -518,23 +386,6 @@ export const updateStudentOptions = async (req: AuthenticatedRequest, res: Respo
             res.status(404).json({
                 success: false,
                 message: 'Student not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
             });
             return;
         }
@@ -578,14 +429,6 @@ export const updateStudentOptions = async (req: AuthenticatedRequest, res: Respo
 // @access  Agent, Admin, SuperAdmin
 export const getStudentOptions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
         const student = await Student.findById(req.params.id)
             .select('name email studentOptions');
 
@@ -593,23 +436,6 @@ export const getStudentOptions = async (req: AuthenticatedRequest, res: Response
             res.status(404).json({
                 success: false,
                 message: 'Student not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && student.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && student.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
             });
             return;
         }
