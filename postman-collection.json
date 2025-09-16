@@ -817,6 +817,400 @@
                             ]
                         }
                     }
+                },
+                {
+                    "name": "Get Student Options Count",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/options/count",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "options",
+                                "count"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Link Student to Course",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"courseId\": \"{{courseId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/course",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "course"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Unlink Student from Course",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/course",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "course"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Courses",
+            "item": [
+                {
+                    "name": "Get All Courses",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses?page=1&limit=10&search=&country=&field=&level=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "country",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "field",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "level",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Courses",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses?search=computer science&country=canada&level=bachelor",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "computer science"
+                                },
+                                {
+                                    "key": "country",
+                                    "value": "canada"
+                                },
+                                {
+                                    "key": "level",
+                                    "value": "bachelor"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Course (SuperAdmin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Bachelor of Computer Science\",\n  \"description\": \"A comprehensive computer science program covering software development, algorithms, and data structures\",\n  \"duration\": \"4 years\",\n  \"level\": \"bachelor\",\n  \"field\": \"Computer Science\",\n  \"university\": \"University of Toronto\",\n  \"country\": \"Canada\",\n  \"tuitionFee\": 25000,\n  \"currency\": \"CAD\",\n  \"requirements\": [\n    \"High school diploma\",\n    \"Mathematics grade 12\",\n    \"English proficiency\"\n  ],\n  \"intakeMonths\": [\"september\", \"january\"],\n  \"languageRequirements\": {\n    \"ielts\": {\n      \"minScore\": 6.5,\n      \"required\": true\n    },\n    \"toefl\": {\n      \"minScore\": 90,\n      \"required\": false\n    }\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Master's Course",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Master of Business Administration\",\n  \"description\": \"Advanced business management program for future leaders\",\n  \"duration\": \"2 years\",\n  \"level\": \"master\",\n  \"field\": \"Business Administration\",\n  \"university\": \"Harvard Business School\",\n  \"country\": \"United States\",\n  \"tuitionFee\": 75000,\n  \"currency\": \"USD\",\n  \"requirements\": [\n    \"Bachelor's degree\",\n    \"GMAT score\",\n    \"Work experience\",\n    \"Letters of recommendation\"\n  ],\n  \"intakeMonths\": [\"september\"],\n  \"languageRequirements\": {\n    \"toefl\": {\n      \"minScore\": 100,\n      \"required\": true\n    }\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Course by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/{{courseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "{{courseId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Course",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Updated Bachelor of Computer Science\",\n  \"description\": \"Updated comprehensive computer science program\",\n  \"tuitionFee\": 26000,\n  \"requirements\": [\n    \"High school diploma\",\n    \"Mathematics grade 12\",\n    \"English proficiency\",\n    \"Physics grade 12\"\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/{{courseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "{{courseId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Course",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/{{courseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "{{courseId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Students in Course",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/{{courseId}}/students?page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "{{courseId}}",
+                                "students"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Link Student to Course (Alternative)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/{{courseId}}/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "{{courseId}}",
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Unlink Student from Course (Alternative)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/{{courseId}}/students/{{studentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "{{courseId}}",
+                                "students",
+                                "{{studentId}}"
+                            ]
+                        }
+                    }
                 }
             ]
         },
@@ -1219,6 +1613,10 @@
         {
             "key": "notificationId",
             "value": "your-notification-id-here"
+        },
+        {
+            "key": "courseId",
+            "value": "your-course-id-here"
         }
     ]
 }

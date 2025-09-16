@@ -37,6 +37,35 @@ export interface IAgent extends BaseDocument {
     }>;
 }
 
+// Course interface
+export interface ICourse extends BaseDocument {
+    name: string;
+    description?: string;
+    duration: string;
+    level: 'certificate' | 'diploma' | 'bachelor' | 'master' | 'phd' | 'other';
+    field: string;
+    university: string;
+    country: string;
+    tuitionFee: number;
+    currency: string;
+    requirements?: string[];
+    intakeMonths?: string[];
+    languageRequirements: {
+        ielts: {
+            minScore?: number;
+            required: boolean;
+        };
+        toefl: {
+            minScore?: number;
+            required: boolean;
+        };
+        other?: string;
+    };
+    isActive: boolean;
+    createdBy: string;
+    studentCount?: number;
+}
+
 // Student interface
 export interface IStudent extends BaseDocument {
     name: string;
@@ -44,6 +73,7 @@ export interface IStudent extends BaseDocument {
     password: string;
     officeId: string;
     agentId: string;
+    courseId?: string;
     phone?: string;
     dateOfBirth?: Date;
     nationality?: string;
@@ -234,5 +264,60 @@ export interface CreateNotificationRequest {
     type: 'info' | 'success' | 'warning' | 'error' | 'payment' | 'student' | 'system';
     priority?: 'low' | 'medium' | 'high' | 'urgent';
     expiresAt?: string;
+}
+
+export interface CreateCourseRequest {
+    name: string;
+    description?: string;
+    duration: string;
+    level: 'certificate' | 'diploma' | 'bachelor' | 'master' | 'phd' | 'other';
+    field: string;
+    university: string;
+    country: string;
+    tuitionFee: number;
+    currency?: string;
+    requirements?: string[];
+    intakeMonths?: string[];
+    languageRequirements?: {
+        ielts?: {
+            minScore?: number;
+            required?: boolean;
+        };
+        toefl?: {
+            minScore?: number;
+            required?: boolean;
+        };
+        other?: string;
+    };
+}
+
+export interface UpdateCourseRequest {
+    name?: string;
+    description?: string;
+    duration?: string;
+    level?: 'certificate' | 'diploma' | 'bachelor' | 'master' | 'phd' | 'other';
+    field?: string;
+    university?: string;
+    country?: string;
+    tuitionFee?: number;
+    currency?: string;
+    requirements?: string[];
+    intakeMonths?: string[];
+    languageRequirements?: {
+        ielts?: {
+            minScore?: number;
+            required?: boolean;
+        };
+        toefl?: {
+            minScore?: number;
+            required?: boolean;
+        };
+        other?: string;
+    };
+    isActive?: boolean;
+}
+
+export interface LinkStudentToCourseRequest {
+    courseId: string;
 }
 

@@ -56,6 +56,10 @@ const studentSchema = new Schema<IStudentDocument>({
         type: String,
         required: [true, 'Agent ID is required']
     },
+    courseId: {
+        type: String,
+        ref: 'Course'
+    },
     phone: {
         type: String,
         trim: true,

@@ -8,7 +8,10 @@ import {
     uploadDocument,
     deleteStudent,
     updateStudentOptions,
-    getStudentOptions
+    getStudentOptions,
+    getStudentOptionsCount,
+    linkStudentToCourse,
+    unlinkStudentFromCourse
 } from '../controllers/student';
 import {
     authenticateToken,
@@ -131,8 +134,15 @@ const studentOptionsValidation = [
         .withMessage('Final payment must be a boolean value')
 ];
 
+const linkCourseValidation = [
+    body('courseId')
+        .isMongoId()
+        .withMessage('Invalid course ID')
+];
+
 // Routes
 router.get('/', authenticateToken, authorizeAgent, getStudents);
+router.get('/options/count', authenticateToken, authorizeAgent, getStudentOptionsCount);
 router.get('/:id', authenticateToken, authorizeStudentAccess, getStudent);
 router.post('/', authenticateToken, authorizeRoles('Agent', 'SuperAdmin'), createStudentValidation, validate, createStudent);
 router.put('/:id', authenticateToken, authorizeStudentAccess, updateStudentValidation, validate, updateStudent);
@@ -142,6 +152,10 @@ router.delete('/:id', authenticateToken, authorizeStudentAccess, deleteStudent);
 // Student options routes
 router.get('/:id/options', authenticateToken, authorizeStudentAccess, getStudentOptions);
 router.put('/:id/options', authenticateToken, authorizeStudentAccess, studentOptionsValidation, validate, updateStudentOptions);
+
+// Course linking routes
+router.put('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), linkCourseValidation, validate, linkStudentToCourse);
+router.delete('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), unlinkStudentFromCourse);
 
 export default router;
 

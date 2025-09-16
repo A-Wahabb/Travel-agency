@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import Student from '../models/Student';
 import Agent from '../models/Agent';
 import Office from '../models/Office';
-import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest } from '../types';
+import Course from '../models/Course';
+import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest, LinkStudentToCourseRequest } from '../types';
 import { getFileInfo } from '../middlewares/upload';
 
 // @desc    Get all students
@@ -48,6 +49,7 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
         const students = await Student.find(query)
             .populate('officeId', 'name address')
             .populate('agentId', 'name email')
+            .populate('courseId', 'name university country field level')
             .select('-password')
             .sort(sort)
             .skip(skip)
@@ -84,6 +86,7 @@ export const getStudent = async (req: AuthenticatedRequest, res: Response): Prom
         const student = await Student.findById(req.params.id)
             .populate('officeId', 'name address')
             .populate('agentId', 'name email')
+            .populate('courseId', 'name university country field level')
             .select('-password');
 
         res.status(200).json({
@@ -452,6 +455,231 @@ export const getStudentOptions = async (req: AuthenticatedRequest, res: Response
         });
     } catch (error) {
         console.error('Get student options error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Get student options count
+// @route   GET /api/students/options/count
+// @access  Agent, Admin, SuperAdmin
+export const getStudentOptionsCount = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        // Build match query based on role
+        const matchQuery: any = { status: { $ne: 'deleted' } };
+
+        if (req.user.role === 'Agent') {
+            matchQuery.agentId = req.user.id;
+        } else if (req.user.role === 'Admin') {
+            matchQuery.officeId = req.user.officeId;
+        }
+        // SuperAdmin can access all students (no additional filter)
+
+        const pipeline = [
+            { $match: matchQuery },
+            {
+                $group: {
+                    _id: null,
+                    totalStudents: { $sum: 1 },
+                    clients: { $sum: { $cond: ['$studentOptions.clients', 1, 0] } },
+                    initialPayment: { $sum: { $cond: ['$studentOptions.initialPayment', 1, 0] } },
+                    documents: { $sum: { $cond: ['$studentOptions.documents', 1, 0] } },
+                    applications: { $sum: { $cond: ['$studentOptions.applications', 1, 0] } },
+                    offerLetterSecured: { $sum: { $cond: ['$studentOptions.offerLetterSecured', 1, 0] } },
+                    secondPaymentDone: { $sum: { $cond: ['$studentOptions.secondPaymentDone', 1, 0] } },
+                    visaApplication: { $sum: { $cond: ['$studentOptions.visaApplication', 1, 0] } },
+                    visaSecured: { $sum: { $cond: ['$studentOptions.visaSecured', 1, 0] } },
+                    finalPayment: { $sum: { $cond: ['$studentOptions.finalPayment', 1, 0] } }
+                }
+            }
+        ];
+
+        const result = await Student.aggregate(pipeline);
+
+        if (result.length === 0) {
+            // No students found, return zero counts
+            const emptyCounts = {
+                totalStudents: 0,
+                clients: 0,
+                initialPayment: 0,
+                documents: 0,
+                applications: 0,
+                offerLetterSecured: 0,
+                secondPaymentDone: 0,
+                visaApplication: 0,
+                visaSecured: 0,
+                finalPayment: 0
+            };
+
+            res.status(200).json({
+                success: true,
+                message: 'Student options count retrieved successfully',
+                data: emptyCounts
+            });
+            return;
+        }
+
+        const counts = result[0];
+        delete counts._id; // Remove the _id field from the response
+
+        res.status(200).json({
+            success: true,
+            message: 'Student options count retrieved successfully',
+            data: counts
+        });
+    } catch (error) {
+        console.error('Get student options count error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Link student to course
+// @route   PUT /api/students/:id/course
+// @access  Agent, Admin
+export const linkStudentToCourse = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const { courseId }: LinkStudentToCourseRequest = req.body;
+
+        // Find student and check access
+        const student = await Student.findById(req.params.id);
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            if (student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to you.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            if (student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        // Check if course exists and is active
+        const course = await Course.findById(courseId);
+        if (!course || !course.isActive) {
+            res.status(404).json({
+                success: false,
+                message: 'Course not found or inactive'
+            });
+            return;
+        }
+
+        // Link student to course
+        student.courseId = courseId;
+        await student.save();
+
+        await student.populate('officeId', 'name address');
+        await student.populate('agentId', 'name email');
+        await student.populate('courseId', 'name university country field level');
+
+        res.status(200).json({
+            success: true,
+            message: 'Student linked to course successfully',
+            data: {
+                _id: student._id,
+                name: student.name,
+                email: student.email,
+                courseId: student.courseId,
+                course: student.courseId
+            }
+        });
+    } catch (error) {
+        console.error('Link student to course error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Unlink student from course
+// @route   DELETE /api/students/:id/course
+// @access  Agent, Admin
+export const unlinkStudentFromCourse = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        // Find student and check access
+        const student = await Student.findById(req.params.id);
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            if (student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to you.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            if (student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        // Unlink student from course
+        student.courseId = undefined;
+        await student.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Student unlinked from course successfully'
+        });
+    } catch (error) {
+        console.error('Unlink student from course error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'

@@ -11,6 +11,7 @@ import authRoutes from './routes/auth';
 import officeRoutes from './routes/offices';
 import agentRoutes from './routes/agents';
 import studentRoutes from './routes/students';
+import courseRoutes from './routes/courses';
 import paymentRoutes from './routes/payments';
 import notificationRoutes from './routes/notifications';
 
@@ -69,6 +70,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/offices', officeRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/courses', courseRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 
