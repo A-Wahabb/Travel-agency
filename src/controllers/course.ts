@@ -16,7 +16,7 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
             return;
         }
 
-        const { page = '1', limit = '10', search = '', sortBy = 'createdAt', sortOrder = 'desc', country, field, level }: PaginationQuery & { country?: string; field?: string; level?: string } = req.query;
+        const { page = '1', limit = '10', search = '', sortBy = 'createdAt', sortOrder = 'desc', country, city, type }: PaginationQuery & { country?: string; city?: string; type?: string } = req.query;
 
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -34,11 +34,11 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
         if (country) {
             query.country = { $regex: country, $options: 'i' };
         }
-        if (field) {
-            query.field = { $regex: field, $options: 'i' };
+        if (city) {
+            query.city = { $regex: city, $options: 'i' };
         }
-        if (level) {
-            query.level = level;
+        if (type) {
+            query.type = { $regex: type, $options: 'i' };
         }
 
         // Build sort
@@ -50,10 +50,10 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
         }
 
         const courses = await Course.find(query)
+            .populate('createdBy', 'name email')
             .sort(sort)
             .skip(skip)
-            .limit(limitNum)
-            .populate('createdBy', 'name email');
+            .limit(limitNum);
 
         const total = await Course.countDocuments(query);
         const totalPages = Math.ceil(total / limitNum);
@@ -84,7 +84,8 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
 export const getCourse = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const course = await Course.findById(req.params.id)
-            .populate('createdBy', 'name email');
+            .populate('createdBy', 'name email')
+            .populate('studentCount');
 
         if (!course) {
             res.status(404).json({
@@ -123,21 +124,9 @@ export const createCourse = async (req: AuthenticatedRequest, res: Response): Pr
 
         const courseData: CreateCourseRequest = req.body;
 
-        // Set default values
+        // Create course with simplified structure
         const course = await Course.create({
             ...courseData,
-            currency: courseData.currency || 'USD',
-            languageRequirements: {
-                ielts: {
-                    minScore: courseData.languageRequirements?.ielts?.minScore,
-                    required: courseData.languageRequirements?.ielts?.required || false
-                },
-                toefl: {
-                    minScore: courseData.languageRequirements?.toefl?.minScore,
-                    required: courseData.languageRequirements?.toefl?.required || false
-                },
-                other: courseData.languageRequirements?.other
-            },
             createdBy: req.user.id
         });
 
@@ -181,24 +170,10 @@ export const updateCourse = async (req: AuthenticatedRequest, res: Response): Pr
             return;
         }
 
-        // Update fields
+        // Update fields with simplified structure
         Object.keys(courseData).forEach(key => {
             if (courseData[key as keyof UpdateCourseRequest] !== undefined) {
-                if (key === 'languageRequirements' && courseData.languageRequirements) {
-                    course.languageRequirements = {
-                        ielts: {
-                            minScore: courseData.languageRequirements.ielts?.minScore,
-                            required: courseData.languageRequirements.ielts?.required || false
-                        },
-                        toefl: {
-                            minScore: courseData.languageRequirements.toefl?.minScore,
-                            required: courseData.languageRequirements.toefl?.required || false
-                        },
-                        other: courseData.languageRequirements.other
-                    };
-                } else {
-                    (course as any)[key] = courseData[key as keyof UpdateCourseRequest];
-                }
+                (course as any)[key] = courseData[key as keyof UpdateCourseRequest];
             }
         });
 
@@ -316,8 +291,8 @@ export const linkStudentToCourse = async (req: AuthenticatedRequest, res: Respon
         student.courseId = courseId;
         await student.save();
 
-        await student.populate('officeId', 'name address');
-        await student.populate('agentId', 'name email');
+        await student.populate('officeId', 'name address location');
+        await student.populate('agentId', 'name email officeId');
         await student.populate('courseId', 'name university country');
 
         res.status(200).json({
@@ -441,8 +416,8 @@ export const getCourseStudents = async (req: AuthenticatedRequest, res: Response
         }
 
         const students = await Student.find(query)
-            .populate('officeId', 'name address')
-            .populate('agentId', 'name email')
+            .populate('officeId', 'name address location')
+            .populate('agentId', 'name email officeId')
             .populate('courseId', 'name university country')
             .select('-password')
             .skip(skip)
@@ -470,4 +445,3 @@ export const getCourseStudents = async (req: AuthenticatedRequest, res: Response
         });
     }
 };
-

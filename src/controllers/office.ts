@@ -18,7 +18,8 @@ export const getOffices = async (req: AuthenticatedRequest, res: Response): Prom
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
-                { address: { $regex: search, $options: 'i' } }
+                { address: { $regex: search, $options: 'i' } },
+                { location: { $regex: search, $options: 'i' } }
             ];
         }
 
@@ -100,11 +101,12 @@ export const createOffice = async (req: AuthenticatedRequest, res: Response): Pr
             return;
         }
 
-        const { name, address }: CreateOfficeRequest = req.body;
+        const { name, address, location }: CreateOfficeRequest = req.body;
 
         const office = await Office.create({
             name,
             address,
+            location,
             createdBy: req.user.id
         });
 
@@ -129,7 +131,7 @@ export const createOffice = async (req: AuthenticatedRequest, res: Response): Pr
 // @access  SuperAdmin
 export const updateOffice = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const { name, address } = req.body;
+        const { name, address, location } = req.body;
 
         const office = await Office.findById(req.params.id);
         if (!office) {
@@ -142,6 +144,7 @@ export const updateOffice = async (req: AuthenticatedRequest, res: Response): Pr
 
         if (name) office.name = name;
         if (address) office.address = address;
+        if (location !== undefined) office.location = location;
 
         await office.save();
         await office.populate('createdBy', 'name email');

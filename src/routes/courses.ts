@@ -25,53 +25,39 @@ const createCourseValidation = [
     body('name')
         .isLength({ min: 2, max: 200 })
         .withMessage('Course name must be between 2 and 200 characters'),
-    body('description')
-        .optional()
-        .isLength({ max: 1000 })
-        .withMessage('Description cannot exceed 1000 characters'),
-    body('duration')
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Duration must be between 1 and 100 characters'),
-    body('level')
-        .isIn(['certificate', 'diploma', 'bachelor', 'master', 'phd', 'other'])
-        .withMessage('Invalid course level'),
-    body('field')
-        .isLength({ min: 2, max: 100 })
-        .withMessage('Field must be between 2 and 100 characters'),
     body('university')
         .isLength({ min: 2, max: 200 })
         .withMessage('University name must be between 2 and 200 characters'),
+    body('department')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Department must be between 2 and 100 characters'),
     body('country')
         .isLength({ min: 2, max: 100 })
         .withMessage('Country must be between 2 and 100 characters'),
-    body('tuitionFee')
-        .isNumeric()
-        .isFloat({ min: 0 })
-        .withMessage('Tuition fee must be a positive number'),
-    body('currency')
-        .optional()
-        .isLength({ max: 10 })
-        .withMessage('Currency cannot exceed 10 characters'),
-    body('requirements')
-        .optional()
-        .isArray()
-        .withMessage('Requirements must be an array'),
-    body('intakeMonths')
-        .optional()
-        .isArray()
-        .withMessage('Intake months must be an array'),
-    body('languageRequirements.ielts.minScore')
-        .optional()
-        .isFloat({ min: 0, max: 9 })
-        .withMessage('IELTS score must be between 0 and 9'),
-    body('languageRequirements.toefl.minScore')
-        .optional()
-        .isFloat({ min: 0, max: 120 })
-        .withMessage('TOEFL score must be between 0 and 120'),
-    body('languageRequirements.other')
-        .optional()
-        .isLength({ max: 200 })
-        .withMessage('Other language requirements cannot exceed 200 characters')
+    body('city')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('City must be between 2 and 100 characters'),
+    body('intake')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Intake must be between 1 and 50 characters'),
+    body('isPrivate')
+        .isIn(['Yes', 'No'])
+        .withMessage('IsPrivate must be either Yes or No'),
+    body('type')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Type must be between 2 and 50 characters'),
+    body('fee')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Fee must be between 1 and 50 characters'),
+    body('timePeriod')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Time period must be between 1 and 50 characters'),
+    body('percentageRequirement')
+        .isLength({ min: 1, max: 10 })
+        .withMessage('Percentage requirement must be between 1 and 10 characters'),
+    body('cgpaRequirement')
+        .isLength({ min: 1, max: 10 })
+        .withMessage('CGPA requirement must be between 1 and 10 characters')
 ];
 
 const updateCourseValidation = [
@@ -79,59 +65,50 @@ const updateCourseValidation = [
         .optional()
         .isLength({ min: 2, max: 200 })
         .withMessage('Course name must be between 2 and 200 characters'),
-    body('description')
-        .optional()
-        .isLength({ max: 1000 })
-        .withMessage('Description cannot exceed 1000 characters'),
-    body('duration')
-        .optional()
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Duration must be between 1 and 100 characters'),
-    body('level')
-        .optional()
-        .isIn(['certificate', 'diploma', 'bachelor', 'master', 'phd', 'other'])
-        .withMessage('Invalid course level'),
-    body('field')
-        .optional()
-        .isLength({ min: 2, max: 100 })
-        .withMessage('Field must be between 2 and 100 characters'),
     body('university')
         .optional()
         .isLength({ min: 2, max: 200 })
         .withMessage('University name must be between 2 and 200 characters'),
+    body('department')
+        .optional()
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Department must be between 2 and 100 characters'),
     body('country')
         .optional()
         .isLength({ min: 2, max: 100 })
         .withMessage('Country must be between 2 and 100 characters'),
-    body('tuitionFee')
+    body('city')
         .optional()
-        .isNumeric()
-        .isFloat({ min: 0 })
-        .withMessage('Tuition fee must be a positive number'),
-    body('currency')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('City must be between 2 and 100 characters'),
+    body('intake')
         .optional()
-        .isLength({ max: 10 })
-        .withMessage('Currency cannot exceed 10 characters'),
-    body('requirements')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Intake must be between 1 and 50 characters'),
+    body('isPrivate')
         .optional()
-        .isArray()
-        .withMessage('Requirements must be an array'),
-    body('intakeMonths')
+        .isIn(['Yes', 'No'])
+        .withMessage('IsPrivate must be either Yes or No'),
+    body('type')
         .optional()
-        .isArray()
-        .withMessage('Intake months must be an array'),
-    body('languageRequirements.ielts.minScore')
+        .isLength({ min: 2, max: 50 })
+        .withMessage('Type must be between 2 and 50 characters'),
+    body('fee')
         .optional()
-        .isFloat({ min: 0, max: 9 })
-        .withMessage('IELTS score must be between 0 and 9'),
-    body('languageRequirements.toefl.minScore')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Fee must be between 1 and 50 characters'),
+    body('timePeriod')
         .optional()
-        .isFloat({ min: 0, max: 120 })
-        .withMessage('TOEFL score must be between 0 and 120'),
-    body('languageRequirements.other')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Time period must be between 1 and 50 characters'),
+    body('percentageRequirement')
         .optional()
-        .isLength({ max: 200 })
-        .withMessage('Other language requirements cannot exceed 200 characters'),
+        .isLength({ min: 1, max: 10 })
+        .withMessage('Percentage requirement must be between 1 and 10 characters'),
+    body('cgpaRequirement')
+        .optional()
+        .isLength({ min: 1, max: 10 })
+        .withMessage('CGPA requirement must be between 1 and 10 characters'),
     body('isActive')
         .optional()
         .isBoolean()

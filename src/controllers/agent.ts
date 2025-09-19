@@ -41,7 +41,7 @@ export const getAgents = async (req: AuthenticatedRequest, res: Response): Promi
         sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
         const agents = await Agent.find(query)
-            .populate('officeId', 'name address')
+            .populate('officeId', 'name address location')
             .select('-password')
             .sort(sort)
             .skip(skip)
@@ -84,7 +84,7 @@ export const getAgent = async (req: AuthenticatedRequest, res: Response): Promis
         }
 
         const agent = await Agent.findById(req.params.id)
-            .populate('officeId', 'name address')
+            .populate('officeId', 'name address location')
             .select('-password');
 
         if (!agent) {
@@ -175,7 +175,7 @@ export const createAgent = async (req: AuthenticatedRequest, res: Response): Pro
             phone
         });
 
-        await agent.populate('officeId', 'name address');
+        await agent.populate('officeId', 'name address location');
         const agentResponse = {
             _id: agent._id,
             name: agent.name,
@@ -257,7 +257,7 @@ export const updateAgent = async (req: AuthenticatedRequest, res: Response): Pro
         if (isActive !== undefined) agent.isActive = isActive;
 
         await agent.save();
-        await agent.populate('officeId', 'name address');
+        await agent.populate('officeId', 'name address location');
 
         const agentResponse = {
             _id: agent._id,

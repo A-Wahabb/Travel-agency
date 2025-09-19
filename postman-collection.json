@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "travel-agency-api",
         "name": "Travel Agency API",
-        "description": "Complete API collection for Travel Agency Management System",
+        "description": "Complete API collection for Travel Agency Management System with comprehensive validation rules and office location support.\n\n## Key Features:\n- **Office Location Support**: New location field accepts Google Maps links, coordinates, or descriptions\n- **Comprehensive Validation**: All endpoints include detailed validation rules\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles with proper permissions\n- **Populated Responses**: All responses include related data (office info, agent info, etc.)\n\n## Authentication:\n- Use login endpoints to get JWT tokens\n- Include `Authorization: Bearer {token}` header in protected requests\n- Tokens include user role and office information\n\n## Office Location Examples:\n- Google Maps: `https://maps.google.com/maps?q=123+Main+St`\n- Coordinates: `40.7128,-74.0060`\n- Description: `Downtown Office Building, Floor 5`",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -21,7 +21,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"email\": \"superadmin@travelagency.com\",\n  \"password\": \"SuperAdmin123!\"\n}"
+                            "raw": "{\n  \"email\": \"superadmin@travelagency.com\",\n  \"password\": \"SuperAdmin123!\"\n}",
+                            "description": "**Validation Rules:**\n- `email`: Required, valid email format\n- `password`: Required, minimum 6 characters\n\n**Response includes:**\n- User data with populated office information (name, address, location)\n- Access token\n- Refresh token"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/auth/login",
@@ -102,7 +103,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Updated Name\",\n  \"phone\": \"+1234567890\"\n}"
+                            "raw": "{\n  \"name\": \"Updated Name\",\n  \"phone\": \"+1234567890\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Optional, 2-100 characters\n- `phone`: Optional, valid phone format (regex: /^[\\+]?[1-9][\\d]{0,15}$/)\n\n**Response includes:**\n- Updated user data with populated office information (name, address, location)"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/auth/profile",
@@ -259,7 +261,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Main Office\",\n  \"address\": \"123 Main Street, City, Country\"\n}"
+                            "raw": "{\n  \"name\": \"Main Office\",\n  \"address\": \"123 Main Street, City, Country\",\n  \"location\": \"https://maps.google.com/maps?q=123+Main+Street+City+Country\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-100 characters\n- `address`: Required, 5-500 characters  \n- `location`: Optional, max 1000 characters. Accepts:\n  - Google Maps links (https://...)\n  - Coordinates (latitude,longitude)\n  - Location descriptions"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/offices",
@@ -312,7 +315,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Updated Office Name\",\n  \"address\": \"456 New Street, City, Country\"\n}"
+                            "raw": "{\n  \"name\": \"Updated Office Name\",\n  \"address\": \"456 New Street, City, Country\",\n  \"location\": \"40.7128,-74.0060\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Optional, 2-100 characters\n- `address`: Optional, 5-500 characters\n- `location`: Optional, max 1000 characters. Accepts:\n  - Google Maps links (https://...)\n  - Coordinates (latitude,longitude) \n  - Location descriptions\n  - Empty string to remove location"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/offices/{{officeId}}",
@@ -323,6 +327,68 @@
                                 "api",
                                 "offices",
                                 "{{officeId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Office with Coordinates",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Branch Office\",\n  \"address\": \"456 Oak Avenue, Downtown, City\",\n  \"location\": \"40.7589,-73.9851\"\n}",
+                            "description": "**Example with coordinates:**\n- `location`: Latitude,longitude format\n- Useful for map integrations and GPS systems\n\n**Validation Rules:**\n- `name`: Required, 2-100 characters\n- `address`: Required, 5-500 characters\n- `location`: Optional, max 1000 characters"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/offices",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "offices"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Office with Description",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Regional Office\",\n  \"address\": \"789 Business Park, Suite 200, City\",\n  \"location\": \"Located in the Business District, near Central Station, 2nd floor of the main building\"\n}",
+                            "description": "**Example with description:**\n- `location`: Descriptive text for easy identification\n- Useful when exact coordinates are not available\n\n**Validation Rules:**\n- `name`: Required, 2-100 characters\n- `address`: Required, 5-500 characters\n- `location`: Optional, max 1000 characters"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/offices",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "offices"
                             ]
                         }
                     }
@@ -403,7 +469,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"Agent\",\n  \"officeId\": \"{{officeId}}\",\n  \"phone\": \"+1234567890\"\n}"
+                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"Agent\",\n  \"officeId\": \"{{officeId}}\",\n  \"phone\": \"+1234567890\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-100 characters\n- `email`: Required, valid email format, unique\n- `password`: Required, minimum 6 characters\n- `role`: Required, one of: 'SuperAdmin', 'Admin', 'Agent'\n- `officeId`: Required for Admin/Agent roles, valid MongoDB ObjectId\n- `phone`: Optional, valid phone format (regex: /^[\\+]?[1-9][\\d]{0,15}$/)\n\n**Response includes:**\n- Created agent data with populated office information (name, address, location)"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/agents",
@@ -607,7 +674,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+1234567890\",\n  \"dateOfBirth\": \"1995-05-15\",\n  \"nationality\": \"American\",\n  \"passportNumber\": \"A12345678\"\n}"
+                            "raw": "{\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+1234567890\",\n  \"dateOfBirth\": \"1995-05-15\",\n  \"nationality\": \"American\",\n  \"passportNumber\": \"A12345678\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-100 characters\n- `email`: Required, valid email format, unique\n- `password`: Required, minimum 6 characters\n- `phone`: Optional, valid phone format (regex: /^[\\+]?[1-9][\\d]{0,15}$/)\n- `dateOfBirth`: Optional, valid date format (YYYY-MM-DD)\n- `nationality`: Optional, 2-100 characters\n- `passportNumber`: Optional, 5-50 characters\n- `officeId`: Auto-assigned based on agent's office (for Agent role)\n- `agentId`: Auto-assigned to current user (for Agent role)\n\n**Response includes:**\n- Created student data with populated office and agent information"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/students",
@@ -914,7 +982,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/api/courses?page=1&limit=10&search=&country=&field=&level=",
+                            "raw": "{{baseUrl}}/api/courses?page=1&limit=10&search=&country=&city=&type=",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -942,12 +1010,12 @@
                                     "disabled": true
                                 },
                                 {
-                                    "key": "field",
+                                    "key": "city",
                                     "value": "",
                                     "disabled": true
                                 },
                                 {
-                                    "key": "level",
+                                    "key": "type",
                                     "value": "",
                                     "disabled": true
                                 }
@@ -966,7 +1034,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/api/courses?search=computer science&country=canada&level=bachelor",
+                            "raw": "{{baseUrl}}/api/courses?search=computer science&country=UK&type=Bachelors",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -981,11 +1049,11 @@
                                 },
                                 {
                                     "key": "country",
-                                    "value": "canada"
+                                    "value": "UK"
                                 },
                                 {
-                                    "key": "level",
-                                    "value": "bachelor"
+                                    "key": "type",
+                                    "value": "Bachelors"
                                 }
                             ]
                         }
@@ -1007,7 +1075,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Bachelor of Computer Science\",\n  \"description\": \"A comprehensive computer science program covering software development, algorithms, and data structures\",\n  \"duration\": \"4 years\",\n  \"level\": \"bachelor\",\n  \"field\": \"Computer Science\",\n  \"university\": \"University of Toronto\",\n  \"country\": \"Canada\",\n  \"tuitionFee\": 25000,\n  \"currency\": \"CAD\",\n  \"requirements\": [\n    \"High school diploma\",\n    \"Mathematics grade 12\",\n    \"English proficiency\"\n  ],\n  \"intakeMonths\": [\"september\", \"january\"],\n  \"languageRequirements\": {\n    \"ielts\": {\n      \"minScore\": 6.5,\n      \"required\": true\n    },\n    \"toefl\": {\n      \"minScore\": 90,\n      \"required\": false\n    }\n  }\n}"
+                            "raw": "{\n  \"name\": \"Computer Science\",\n  \"university\": \"Oxford University\",\n  \"department\": \"Engineering\",\n  \"country\": \"UK\",\n  \"city\": \"Oxford\",\n  \"intake\": \"Feb\",\n  \"isPrivate\": \"No\",\n  \"type\": \"Bachelors\",\n  \"fee\": \"25000\",\n  \"timePeriod\": \"4 Years\",\n  \"percentageRequirement\": \"60%\",\n  \"cgpaRequirement\": \"3.0\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-200 characters\n- `university`: Required, 2-200 characters\n- `department`: Required, 2-100 characters\n- `country`: Required, 2-100 characters\n- `city`: Required, 2-100 characters\n- `intake`: Required, 1-50 characters\n- `isPrivate`: Required, either 'Yes' or 'No'\n- `type`: Required, 2-50 characters\n- `fee`: Required, 1-50 characters\n- `timePeriod`: Required, 1-50 characters\n- `percentageRequirement`: Required, 1-10 characters\n- `cgpaRequirement`: Required, 1-10 characters"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/courses",
@@ -1037,7 +1106,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Master of Business Administration\",\n  \"description\": \"Advanced business management program for future leaders\",\n  \"duration\": \"2 years\",\n  \"level\": \"master\",\n  \"field\": \"Business Administration\",\n  \"university\": \"Harvard Business School\",\n  \"country\": \"United States\",\n  \"tuitionFee\": 75000,\n  \"currency\": \"USD\",\n  \"requirements\": [\n    \"Bachelor's degree\",\n    \"GMAT score\",\n    \"Work experience\",\n    \"Letters of recommendation\"\n  ],\n  \"intakeMonths\": [\"september\"],\n  \"languageRequirements\": {\n    \"toefl\": {\n      \"minScore\": 100,\n      \"required\": true\n    }\n  }\n}"
+                            "raw": "{\n  \"name\": \"Business Administration\",\n  \"university\": \"Harvard Business School\",\n  \"department\": \"Business\",\n  \"country\": \"United States\",\n  \"city\": \"Boston\",\n  \"intake\": \"Sep\",\n  \"isPrivate\": \"Yes\",\n  \"type\": \"Masters\",\n  \"fee\": \"75000\",\n  \"timePeriod\": \"2 Years\",\n  \"percentageRequirement\": \"70%\",\n  \"cgpaRequirement\": \"3.5\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-200 characters\n- `university`: Required, 2-200 characters\n- `department`: Required, 2-100 characters\n- `country`: Required, 2-100 characters\n- `city`: Required, 2-100 characters\n- `intake`: Required, 1-50 characters\n- `isPrivate`: Required, either 'Yes' or 'No'\n- `type`: Required, 2-50 characters\n- `fee`: Required, 1-50 characters\n- `timePeriod`: Required, 1-50 characters\n- `percentageRequirement`: Required, 1-10 characters\n- `cgpaRequirement`: Required, 1-10 characters"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/courses",
@@ -1090,7 +1160,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Updated Bachelor of Computer Science\",\n  \"description\": \"Updated comprehensive computer science program\",\n  \"tuitionFee\": 26000,\n  \"requirements\": [\n    \"High school diploma\",\n    \"Mathematics grade 12\",\n    \"English proficiency\",\n    \"Physics grade 12\"\n  ]\n}"
+                            "raw": "{\n  \"name\": \"Updated Computer Science\",\n  \"university\": \"Oxford University\",\n  \"department\": \"Computer Science\",\n  \"fee\": \"26000\",\n  \"percentageRequirement\": \"65%\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Optional, 2-200 characters\n- `university`: Optional, 2-200 characters\n- `department`: Optional, 2-100 characters\n- `country`: Optional, 2-100 characters\n- `city`: Optional, 2-100 characters\n- `intake`: Optional, 1-50 characters\n- `isPrivate`: Optional, either 'Yes' or 'No'\n- `type`: Optional, 2-50 characters\n- `fee`: Optional, 1-50 characters\n- `timePeriod`: Optional, 1-50 characters\n- `percentageRequirement`: Optional, 1-10 characters\n- `cgpaRequirement`: Optional, 1-10 characters\n- `isActive`: Optional, boolean"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/courses/{{courseId}}",
@@ -1265,7 +1336,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"amount\": 1000,\n  \"date\": \"2024-01-15\",\n  \"paymentMethod\": \"cash\",\n  \"notes\": \"Initial payment\"\n}"
+                            "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"amount\": 1000,\n  \"date\": \"2024-01-15\",\n  \"paymentMethod\": \"cash\",\n  \"notes\": \"Initial payment\"\n}",
+                            "description": "**Validation Rules:**\n- `studentId`: Required, valid MongoDB ObjectId\n- `amount`: Required, positive number\n- `date`: Required, valid date format (YYYY-MM-DD)\n- `paymentMethod`: Required, one of: 'cash', 'card', 'bank_transfer', 'check', 'other'\n- `notes`: Optional, max 500 characters\n- `receiptNumber`: Optional, 5-50 characters (auto-generated if not provided)\n\n**Response includes:**\n- Created payment data with populated student information"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/payments",
@@ -1462,7 +1534,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"officeId\": \"{{officeId}}\",\n  \"agentId\": \"{{agentId}}\",\n  \"message\": \"New student registration completed\",\n  \"title\": \"Student Registration\",\n  \"type\": \"student\",\n  \"priority\": \"medium\"\n}"
+                            "raw": "{\n  \"officeId\": \"{{officeId}}\",\n  \"agentId\": \"{{agentId}}\",\n  \"message\": \"New student registration completed\",\n  \"title\": \"Student Registration\",\n  \"type\": \"student\",\n  \"priority\": \"medium\"\n}",
+                            "description": "**Validation Rules:**\n- `officeId`: Required, valid MongoDB ObjectId\n- `agentId`: Required, valid MongoDB ObjectId\n- `message`: Required, 5-1000 characters\n- `title`: Required, 2-200 characters\n- `type`: Required, one of: 'info', 'success', 'warning', 'error', 'payment', 'student', 'system'\n- `priority`: Optional, one of: 'low', 'medium', 'high', 'urgent' (default: medium)\n- `expiresAt`: Optional, valid date format (YYYY-MM-DD)\n\n**Response includes:**\n- Created notification data"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/notifications",

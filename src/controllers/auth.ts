@@ -65,6 +65,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
         await user.save();
 
+        // Populate office information if officeId exists
+        await user.populate('officeId', 'name address location');
+
         // Remove password from response
         const userResponse = {
             _id: user._id,
@@ -119,6 +122,9 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response): Prom
             return;
         }
 
+        // Populate office information if officeId exists
+        await user.populate('officeId', 'name address location');
+
         res.status(200).json({
             success: true,
             message: 'Profile retrieved successfully',
@@ -162,6 +168,9 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response): P
         if (phone) user.phone = phone;
 
         await user.save();
+
+        // Populate office information if officeId exists
+        await user.populate('officeId', 'name address location');
 
         // Remove password from response
         const userResponse = {
@@ -347,3 +356,352 @@ export const logout = async (req: AuthenticatedRequest, res: Response): Promise<
         });
     }
 };
+
+
+updatedAt: user.updatedAt
+
+        };
+
+
+
+res.status(200).json({
+
+    success: true,
+
+    message: 'Profile updated successfully',
+
+    data: userResponse
+
+});
+
+    } catch (error) {
+
+    console.error('Update profile error:', error);
+
+    res.status(500).json({
+
+        success: false,
+
+        message: 'Server error'
+
+    });
+
+}
+
+};
+
+
+
+// @desc    Change password
+
+// @route   PUT /api/auth/change-password
+
+// @access  Private
+
+export const changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+
+    try {
+
+        if (!req.user) {
+
+            res.status(401).json({
+
+                success: false,
+
+                message: 'Authentication required'
+
+            });
+
+            return;
+
+        }
+
+
+
+        const { currentPassword, newPassword } = req.body;
+
+
+
+        const user = await Agent.findById(req.user.id).select('+password');
+
+        if (!user) {
+
+            res.status(404).json({
+
+                success: false,
+
+                message: 'User not found'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Verify current password
+
+        const isCurrentPasswordValid = await comparePassword(currentPassword, user.password);
+
+        if (!isCurrentPasswordValid) {
+
+            res.status(400).json({
+
+                success: false,
+
+                message: 'Current password is incorrect'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Update password
+
+        user.password = newPassword;
+
+        await user.save();
+
+
+
+        res.status(200).json({
+
+            success: true,
+
+            message: 'Password changed successfully'
+
+        });
+
+    } catch (error) {
+
+        console.error('Change password error:', error);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: 'Server error'
+
+        });
+
+    }
+
+};
+
+
+
+// @desc    Refresh access token
+
+// @route   POST /api/auth/refresh
+
+// @access  Public
+
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+
+    try {
+
+        const { refreshToken }: RefreshTokenRequest = req.body;
+
+
+
+        if (!refreshToken) {
+
+            res.status(400).json({
+
+                success: false,
+
+                message: 'Refresh token is required'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Verify refresh token
+
+        const decoded = verifyRefreshToken(refreshToken);
+
+        const user = await Agent.findById(decoded.userId);
+
+
+
+        if (!user || !user.isActive) {
+
+            res.status(401).json({
+
+                success: false,
+
+                message: 'Invalid refresh token'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Check if refresh token exists in user's refresh tokens
+
+        const tokenExists = user.refreshTokens?.some(rt => rt.token === refreshToken);
+
+        if (!tokenExists) {
+
+            res.status(401).json({
+
+                success: false,
+
+                message: 'Invalid refresh token'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Check if refresh token is expired
+
+        const tokenData = user.refreshTokens?.find(rt => rt.token === refreshToken);
+
+        if (tokenData && new Date() > tokenData.expiresAt) {
+
+            // Remove expired token
+
+            user.refreshTokens = user.refreshTokens?.filter(rt => rt.token !== refreshToken);
+
+            await user.save();
+
+
+
+            res.status(401).json({
+
+                success: false,
+
+                message: 'Refresh token expired'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Generate new access token
+
+        const newToken = generateToken(user._id.toString(), user.role, user.officeId?.toString());
+
+
+
+        res.status(200).json({
+
+            success: true,
+
+            message: 'Token refreshed successfully',
+
+            data: {
+
+                token: newToken
+
+            }
+
+        });
+
+    } catch (error) {
+
+        console.error('Refresh token error:', error);
+
+        res.status(401).json({
+
+            success: false,
+
+            message: 'Invalid refresh token'
+
+        });
+
+    }
+
+};
+
+
+
+// @desc    Logout (client-side token invalidation)
+
+// @route   POST /api/auth/logout
+
+// @access  Private
+
+export const logout = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+
+    try {
+
+        if (!req.user) {
+
+            res.status(401).json({
+
+                success: false,
+
+                message: 'Authentication required'
+
+            });
+
+            return;
+
+        }
+
+
+
+        // Remove refresh token from database
+
+        const { refreshToken } = req.body;
+
+        if (refreshToken) {
+
+            const user = await Agent.findById(req.user.id);
+
+            if (user && user.refreshTokens) {
+
+                user.refreshTokens = user.refreshTokens.filter(rt => rt.token !== refreshToken);
+
+                await user.save();
+
+            }
+
+        }
+
+
+
+        res.status(200).json({
+
+            success: true,
+
+            message: 'Logout successful'
+
+        });
+
+    } catch (error) {
+
+        console.error('Logout error:', error);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: 'Server error'
+
+        });
+
+    }
+
+};
+
+

@@ -14,6 +14,7 @@ export interface BaseDocument extends Document {
 export interface IOffice extends BaseDocument {
     name: string;
     address: string;
+    location?: string; // Can contain Google Maps link or pin location coordinates
     createdBy: string;
     isActive: boolean;
     agentCount?: number;
@@ -40,27 +41,17 @@ export interface IAgent extends BaseDocument {
 // Course interface
 export interface ICourse extends BaseDocument {
     name: string;
-    description?: string;
-    duration: string;
-    level: 'certificate' | 'diploma' | 'bachelor' | 'master' | 'phd' | 'other';
-    field: string;
     university: string;
+    department: string;
     country: string;
-    tuitionFee: number;
-    currency: string;
-    requirements?: string[];
-    intakeMonths?: string[];
-    languageRequirements: {
-        ielts: {
-            minScore?: number;
-            required: boolean;
-        };
-        toefl: {
-            minScore?: number;
-            required: boolean;
-        };
-        other?: string;
-    };
+    city: string;
+    intake: string;
+    isPrivate: 'Yes' | 'No';
+    type: string;
+    fee: string;
+    timePeriod: string;
+    percentageRequirement: string;
+    cgpaRequirement: string;
     isActive: boolean;
     createdBy: string;
     studentCount?: number;
@@ -213,6 +204,7 @@ export interface RefreshTokenRequest {
 export interface CreateOfficeRequest {
     name: string;
     address: string;
+    location?: string;
 }
 
 export interface CreateAgentRequest {
@@ -268,52 +260,32 @@ export interface CreateNotificationRequest {
 
 export interface CreateCourseRequest {
     name: string;
-    description?: string;
-    duration: string;
-    level: 'certificate' | 'diploma' | 'bachelor' | 'master' | 'phd' | 'other';
-    field: string;
     university: string;
+    department: string;
     country: string;
-    tuitionFee: number;
-    currency?: string;
-    requirements?: string[];
-    intakeMonths?: string[];
-    languageRequirements?: {
-        ielts?: {
-            minScore?: number;
-            required?: boolean;
-        };
-        toefl?: {
-            minScore?: number;
-            required?: boolean;
-        };
-        other?: string;
-    };
+    city: string;
+    intake: string;
+    isPrivate: 'Yes' | 'No';
+    type: string;
+    fee: string;
+    timePeriod: string;
+    percentageRequirement: string;
+    cgpaRequirement: string;
 }
 
 export interface UpdateCourseRequest {
     name?: string;
-    description?: string;
-    duration?: string;
-    level?: 'certificate' | 'diploma' | 'bachelor' | 'master' | 'phd' | 'other';
-    field?: string;
     university?: string;
+    department?: string;
     country?: string;
-    tuitionFee?: number;
-    currency?: string;
-    requirements?: string[];
-    intakeMonths?: string[];
-    languageRequirements?: {
-        ielts?: {
-            minScore?: number;
-            required?: boolean;
-        };
-        toefl?: {
-            minScore?: number;
-            required?: boolean;
-        };
-        other?: string;
-    };
+    city?: string;
+    intake?: string;
+    isPrivate?: 'Yes' | 'No';
+    type?: string;
+    fee?: string;
+    timePeriod?: string;
+    percentageRequirement?: string;
+    cgpaRequirement?: string;
     isActive?: boolean;
 }
 

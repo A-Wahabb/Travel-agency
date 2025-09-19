@@ -22,7 +22,21 @@ const createOfficeValidation = [
         .withMessage('Office name must be between 2 and 100 characters'),
     body('address')
         .isLength({ min: 5, max: 500 })
-        .withMessage('Address must be between 5 and 500 characters')
+        .withMessage('Address must be between 5 and 500 characters'),
+    body('location')
+        .optional()
+        .isLength({ max: 1000 })
+        .withMessage('Location cannot exceed 1000 characters')
+        .custom((value) => {
+            if (!value) return true; // Optional field
+            // Allow Google Maps links, coordinates, or other location formats
+            const urlPattern = /^https?:\/\/.+/;
+            const coordinatePattern = /^-?\d+\.?\d*,-?\d+\.?\d*$/;
+            if (urlPattern.test(value) || coordinatePattern.test(value) || value.length > 0) {
+                return true;
+            }
+            throw new Error('Location must be a valid URL, coordinates, or location description');
+        })
 ];
 
 const updateOfficeValidation = [
@@ -33,7 +47,21 @@ const updateOfficeValidation = [
     body('address')
         .optional()
         .isLength({ min: 5, max: 500 })
-        .withMessage('Address must be between 5 and 500 characters')
+        .withMessage('Address must be between 5 and 500 characters'),
+    body('location')
+        .optional()
+        .isLength({ max: 1000 })
+        .withMessage('Location cannot exceed 1000 characters')
+        .custom((value) => {
+            if (!value) return true; // Optional field
+            // Allow Google Maps links, coordinates, or other location formats
+            const urlPattern = /^https?:\/\/.+/;
+            const coordinatePattern = /^-?\d+\.?\d*,-?\d+\.?\d*$/;
+            if (urlPattern.test(value) || coordinatePattern.test(value) || value.length > 0) {
+                return true;
+            }
+            throw new Error('Location must be a valid URL, coordinates, or location description');
+        })
 ];
 
 // Routes

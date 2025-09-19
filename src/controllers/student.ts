@@ -47,8 +47,8 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
         sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
         const students = await Student.find(query)
-            .populate('officeId', 'name address')
-            .populate('agentId', 'name email')
+            .populate('officeId', 'name address location')
+            .populate('agentId', 'name email officeId')
             .populate('courseId', 'name university country field level')
             .select('-password')
             .sort(sort)
@@ -84,8 +84,8 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
 export const getStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const student = await Student.findById(req.params.id)
-            .populate('officeId', 'name address')
-            .populate('agentId', 'name email')
+            .populate('officeId', 'name address location')
+            .populate('agentId', 'name email officeId')
             .populate('courseId', 'name university country field level')
             .select('-password');
 
@@ -192,8 +192,8 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             passportNumber
         });
 
-        await student.populate('officeId', 'name address');
-        await student.populate('agentId', 'name email');
+        await student.populate('officeId', 'name address location');
+        await student.populate('agentId', 'name email officeId');
 
         const studentResponse = {
             _id: student._id,
@@ -263,8 +263,8 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
         if (status) student.status = status;
 
         await student.save();
-        await student.populate('officeId', 'name address');
-        await student.populate('agentId', 'name email');
+        await student.populate('officeId', 'name address location');
+        await student.populate('agentId', 'name email officeId');
 
         const studentResponse = {
             _id: student._id,
@@ -405,8 +405,8 @@ export const updateStudentOptions = async (req: AuthenticatedRequest, res: Respo
         if (studentOptions.finalPayment !== undefined) student.studentOptions.finalPayment = studentOptions.finalPayment;
 
         await student.save();
-        await student.populate('officeId', 'name address');
-        await student.populate('agentId', 'name email');
+        await student.populate('officeId', 'name address location');
+        await student.populate('agentId', 'name email officeId');
 
         res.status(200).json({
             success: true,
@@ -604,8 +604,8 @@ export const linkStudentToCourse = async (req: AuthenticatedRequest, res: Respon
         student.courseId = courseId;
         await student.save();
 
-        await student.populate('officeId', 'name address');
-        await student.populate('agentId', 'name email');
+        await student.populate('officeId', 'name address location');
+        await student.populate('agentId', 'name email officeId');
         await student.populate('courseId', 'name university country field level');
 
         res.status(200).json({
