@@ -194,12 +194,34 @@ export const createAgent = async (req: AuthenticatedRequest, res: Response): Pro
             message: 'Agent created successfully',
             data: agentResponse
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create agent error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // Handle duplicate key error (email already exists)
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: 'Email already registered'
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 
@@ -277,12 +299,34 @@ export const updateAgent = async (req: AuthenticatedRequest, res: Response): Pro
             message: 'Agent updated successfully',
             data: agentResponse
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Update agent error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // Handle duplicate key error (email already exists)
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: 'Email already registered'
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 

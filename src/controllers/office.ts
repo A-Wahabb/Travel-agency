@@ -117,12 +117,34 @@ export const createOffice = async (req: AuthenticatedRequest, res: Response): Pr
             message: 'Office created successfully',
             data: office
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create office error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // Handle duplicate key error
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: 'Duplicate field value entered'
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 
@@ -154,12 +176,34 @@ export const updateOffice = async (req: AuthenticatedRequest, res: Response): Pr
             message: 'Office updated successfully',
             data: office
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Update office error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // Handle duplicate key error
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: 'Duplicate field value entered'
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 

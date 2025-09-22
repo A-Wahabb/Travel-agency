@@ -216,12 +216,34 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             message: 'Student created successfully',
             data: studentResponse
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create student error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // Handle duplicate key error (email already exists)
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: 'Email already registered'
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 
@@ -287,12 +309,34 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
             message: 'Student updated successfully',
             data: studentResponse
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Update student error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // Handle duplicate key error (email already exists)
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: 'Email already registered'
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 
@@ -418,12 +462,25 @@ export const updateStudentOptions = async (req: AuthenticatedRequest, res: Respo
                 studentOptions: student.studentOptions
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Update student options error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        // For other errors, let the error handler middleware handle them
+        throw error;
     }
 };
 
