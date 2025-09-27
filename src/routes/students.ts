@@ -11,7 +11,10 @@ import {
     getStudentOptions,
     getStudentOptionsCount,
     linkStudentToCourse,
-    unlinkStudentFromCourse
+    unlinkStudentFromCourse,
+    uploadBulkDocuments,
+    getStudentDocuments,
+    deleteStudentDocument
 } from '../controllers/student';
 import {
     authenticateToken,
@@ -20,6 +23,7 @@ import {
     authorizeRoles
 } from '../middlewares/auth';
 import { uploadSingleMiddleware } from '../middlewares/upload';
+import { uploadStudentDocumentsMiddleware } from '../middlewares/studentDocumentUpload';
 import validate from '../middlewares/validate';
 
 const router = express.Router();
@@ -147,6 +151,9 @@ router.get('/:id', authenticateToken, authorizeStudentAccess, getStudent);
 router.post('/', authenticateToken, authorizeRoles('Agent', 'SuperAdmin'), createStudentValidation, validate, createStudent);
 router.put('/:id', authenticateToken, authorizeStudentAccess, updateStudentValidation, validate, updateStudent);
 router.post('/:id/documents', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent'), uploadSingleMiddleware, documentValidation, validate, uploadDocument);
+router.post('/:id/documents/bulk', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), uploadStudentDocumentsMiddleware, uploadBulkDocuments);
+router.get('/:id/documents', authenticateToken, authorizeStudentAccess, getStudentDocuments);
+router.delete('/:id/documents/:documentType', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), deleteStudentDocument);
 router.delete('/:id', authenticateToken, authorizeStudentAccess, deleteStudent);
 
 // Student options routes

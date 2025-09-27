@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { IStudent, IDocument } from '../types';
+import { IStudent, IDocument, IStudentDocuments } from '../types';
 import { hashPassword } from '../config/auth';
 
 export interface IStudentDocument extends IStudent, Document { }
@@ -25,8 +25,41 @@ const documentSchema = new Schema<IDocument>({
         type: String,
         enum: ['passport', 'visa', 'certificate', 'other'],
         default: 'other'
+    },
+    s3Key: {
+        type: String,
+        required: false
+    },
+    s3Url: {
+        type: String,
+        required: false
+    },
+    size: {
+        type: Number,
+        required: false
+    },
+    mimetype: {
+        type: String,
+        required: false
     }
 });
+
+// Schema for student documents with specific fields
+const studentDocumentsSchema = new Schema<IStudentDocuments>({
+    profilePicture: documentSchema,
+    matricCertificate: documentSchema,
+    matricMarksSheet: documentSchema,
+    intermediateCertificate: documentSchema,
+    intermediateMarkSheet: documentSchema,
+    degree: documentSchema,
+    transcript: documentSchema,
+    languageCertificate: documentSchema,
+    passport: documentSchema,
+    experienceLetter: documentSchema,
+    birthCertificate: documentSchema,
+    familyRegistration: documentSchema,
+    otherDocs: [documentSchema]
+}, { _id: false });
 
 const studentSchema = new Schema<IStudentDocument>({
     name: {
@@ -79,6 +112,7 @@ const studentSchema = new Schema<IStudentDocument>({
         maxlength: [50, 'Passport number cannot exceed 50 characters']
     },
     documents: [documentSchema],
+    studentDocuments: studentDocumentsSchema,
     status: {
         type: String,
         enum: ['active', 'inactive', 'pending', 'completed'],

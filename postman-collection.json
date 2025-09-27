@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "travel-agency-api",
         "name": "Travel Agency API",
-        "description": "Complete API collection for Travel Agency Management System with comprehensive validation rules and office location support.\n\n## Key Features:\n- **Office Location Support**: New location field accepts Google Maps links, coordinates, or descriptions\n- **Comprehensive Validation**: All endpoints include detailed validation rules\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles with proper permissions\n- **Populated Responses**: All responses include related data (office info, agent info, etc.)\n\n## Authentication:\n- Use login endpoints to get JWT tokens\n- Include `Authorization: Bearer {token}` header in protected requests\n- Tokens include user role and office information\n\n## Office Location Examples:\n- Google Maps: `https://maps.google.com/maps?q=123+Main+St`\n- Coordinates: `40.7128,-74.0060`\n- Description: `Downtown Office Building, Floor 5`",
+        "description": "Complete API collection for Travel Agency Management System with comprehensive validation rules, office location support, and S3-integrated bulk document upload.\n\n## Key Features:\n- **Office Location Support**: New location field accepts Google Maps links, coordinates, or descriptions\n- **Bulk Document Upload**: S3-integrated system for uploading multiple specific document types\n- **Comprehensive Validation**: All endpoints include detailed validation rules\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles with proper permissions\n- **Populated Responses**: All responses include related data (office info, agent info, etc.)\n\n## Authentication:\n- Use login endpoints to get JWT tokens\n- Include `Authorization: Bearer {token}` header in protected requests\n- Tokens include user role and office information\n\n## Document Upload System:\n- **Bulk Upload**: Upload multiple document types in a single request\n- **S3 Integration**: All documents stored in AWS S3 with organized folder structure\n- **Document Types**: 12 specific types + additional documents (up to 10)\n- **File Validation**: PDF, images, and Office documents supported\n- **Size Limits**: 10MB per file, 15 files per request\n\n## Office Location Examples:\n- Google Maps: `https://maps.google.com/maps?q=123+Main+St`\n- Coordinates: `40.7128,-74.0060`\n- Description: `Downtown Office Building, Floor 5`",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -797,7 +797,7 @@
                     }
                 },
                 {
-                    "name": "Upload Student Documents",
+                    "name": "Upload Student Documents (Legacy)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -828,6 +828,199 @@
                                 "documents"
                             ]
                         }
+                    }
+                },
+                {
+                    "name": "Bulk Upload Student Documents",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "profilePicture",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Student's profile picture (optional)"
+                                },
+                                {
+                                    "key": "matricCertificate",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Matriculation certificate (optional)"
+                                },
+                                {
+                                    "key": "matricMarksSheet",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Matriculation marks sheet (optional)"
+                                },
+                                {
+                                    "key": "intermediateCertificate",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Intermediate certificate (optional)"
+                                },
+                                {
+                                    "key": "intermediateMarkSheet",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Intermediate marks sheet (optional)"
+                                },
+                                {
+                                    "key": "degree",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Degree certificate (optional)"
+                                },
+                                {
+                                    "key": "transcript",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Academic transcript (optional)"
+                                },
+                                {
+                                    "key": "languageCertificate",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Language proficiency certificate (optional)"
+                                },
+                                {
+                                    "key": "passport",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Passport document (optional)"
+                                },
+                                {
+                                    "key": "experienceLetter",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Work experience letter (optional)"
+                                },
+                                {
+                                    "key": "birthCertificate",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Birth certificate (optional)"
+                                },
+                                {
+                                    "key": "familyRegistration",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Family registration document (optional)"
+                                },
+                                {
+                                    "key": "otherDocs",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Additional documents (optional, up to 10 files)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/documents/bulk",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "documents",
+                                "bulk"
+                            ]
+                        },
+                        "description": "**Bulk Document Upload with S3 Integration**\n\nUpload multiple specific document types for a student in a single request. All documents are stored in AWS S3 with organized folder structure.\n\n**Supported Document Types:**\n- `profilePicture`: Student's profile picture\n- `matricCertificate`: Matriculation certificate\n- `matricMarksSheet`: Matriculation marks sheet\n- `intermediateCertificate`: Intermediate certificate\n- `intermediateMarkSheet`: Intermediate marks sheet\n- `degree`: Degree certificate\n- `transcript`: Academic transcript\n- `languageCertificate`: Language proficiency certificate\n- `passport`: Passport document\n- `experienceLetter`: Work experience letter\n- `birthCertificate`: Birth certificate\n- `familyRegistration`: Family registration document\n- `otherDocs`: Additional documents (up to 10 files)\n\n**File Constraints:**\n- Maximum 10MB per file\n- Maximum 15 files per request\n- Allowed types: PDF, Images (JPEG, PNG, GIF, WebP), Office documents\n\n**Response includes:**\n- Upload results for each document type\n- S3 URLs and metadata\n- Success/failure status for each document"
+                    }
+                },
+                {
+                    "name": "Get Student Documents",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/documents",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "documents"
+                            ]
+                        },
+                        "description": "**Get All Student Documents**\n\nRetrieve all documents for a specific student including S3 URLs and metadata.\n\n**Response includes:**\n- Student information\n- All uploaded documents with S3 URLs\n- Document metadata (size, type, upload date)\n- Organized by document type"
+                    }
+                },
+                {
+                    "name": "Delete Student Document",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/documents/profilePicture",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "documents",
+                                "profilePicture"
+                            ]
+                        },
+                        "description": "**Delete Specific Document**\n\nDelete a specific document type for a student. For `otherDocs`, add `?index=0` query parameter to specify which document to delete.\n\n**Examples:**\n- Delete profile picture: `/documents/profilePicture`\n- Delete first otherDoc: `/documents/otherDocs?index=0`\n- Delete second otherDoc: `/documents/otherDocs?index=1`\n\n**Response includes:**\n- Confirmation of deletion\n- Document information that was deleted"
+                    }
+                },
+                {
+                    "name": "Delete Other Document (with index)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/{{studentId}}/documents/otherDocs?index=0",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "{{studentId}}",
+                                "documents",
+                                "otherDocs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "index",
+                                    "value": "0",
+                                    "description": "Index of the otherDoc to delete (0-based)"
+                                }
+                            ]
+                        },
+                        "description": "**Delete Specific Other Document**\n\nDelete a specific document from the otherDocs array by specifying its index.\n\n**Query Parameters:**\n- `index`: Required, 0-based index of the document to delete\n\n**Response includes:**\n- Confirmation of deletion\n- Document information that was deleted"
                     }
                 },
                 {

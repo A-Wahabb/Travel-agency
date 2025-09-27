@@ -9,7 +9,7 @@ dotenv.config();
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-    console.error('MONGO_URI is not defined in environment variables');
+    console.error('MONGO_URI is not defined in environment variables 222');
     process.exit(1);
 }
 
@@ -27,7 +27,7 @@ const seedSuperAdmin = async (): Promise<void> => {
         // Connect to MongoDB
         await mongoose.connect(MONGO_URI);
         console.log('Connected to MongoDB');
-
+        
         // Check if SuperAdmin already exists
         const existingSuperAdmin = await Agent.findOne({
             email: superAdminData.email,

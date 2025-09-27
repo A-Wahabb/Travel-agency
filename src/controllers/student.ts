@@ -3,8 +3,10 @@ import Student from '../models/Student';
 import Agent from '../models/Agent';
 import Office from '../models/Office';
 import Course from '../models/Course';
-import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest, LinkStudentToCourseRequest } from '../types';
+import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest, LinkStudentToCourseRequest, BulkDocumentUploadRequest, DocumentUploadResult, StudentDocumentType } from '../types';
 import { getFileInfo } from '../middlewares/upload';
+import { uploadFileToS3, uploadMultipleFilesToS3, cleanupFilesFromS3 } from '../services/s3Service';
+import { organizeUploadedFiles, validateDocumentTypes, getFileInfoForS3 } from '../middlewares/studentDocumentUpload';
 
 // @desc    Get all students
 // @route   GET /api/students
@@ -737,6 +739,387 @@ export const unlinkStudentFromCourse = async (req: AuthenticatedRequest, res: Re
         });
     } catch (error) {
         console.error('Unlink student from course error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Upload multiple documents for a student
+// @route   POST /api/students/:id/documents/bulk
+// @access  Agent, Admin
+export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const studentId = req.params.id;
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+        // Find student and check access
+        const student = await Student.findById(studentId);
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            if (student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to you.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            if (student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        // Organize and validate uploaded files
+        const organizedFiles = organizeUploadedFiles(files);
+        validateDocumentTypes(organizedFiles);
+
+        // Prepare documents for S3 upload
+        const documentsToUpload: Array<{ file: { buffer: Buffer; originalname: string; mimetype: string; size: number; fieldname: string }; documentType: string; studentId: string }> = [];
+        const uploadResults: DocumentUploadResult[] = [];
+        const uploadedS3Keys: string[] = [];
+
+        // Process each document type
+        Object.keys(organizedFiles).forEach(fieldname => {
+            const fileData = organizedFiles[fieldname];
+
+            if (fieldname === 'otherDocs' && Array.isArray(fileData)) {
+                // Handle multiple otherDocs
+                fileData.forEach((file, index) => {
+                    documentsToUpload.push({
+                        file: {
+                            buffer: file.buffer,
+                            originalname: file.originalname,
+                            mimetype: file.mimetype,
+                            size: file.size,
+                            fieldname: file.fieldname
+                        },
+                        documentType: `${fieldname}_${index}`,
+                        studentId: studentId
+                    });
+                });
+            } else if (!Array.isArray(fileData)) {
+                // Handle single file
+                documentsToUpload.push({
+                    file: {
+                        buffer: fileData.buffer,
+                        originalname: fileData.originalname,
+                        mimetype: fileData.mimetype,
+                        size: fileData.size,
+                        fieldname: fileData.fieldname
+                    },
+                    documentType: fieldname,
+                    studentId: studentId
+                });
+            }
+        });
+
+        // Upload files to S3
+        const s3Results = await uploadMultipleFilesToS3(documentsToUpload);
+
+        // Process S3 results and create document records
+        let s3ResultIndex = 0;
+
+        Object.keys(organizedFiles).forEach(fieldname => {
+            const fileData = organizedFiles[fieldname];
+
+            if (fieldname === 'otherDocs' && Array.isArray(fileData)) {
+                // Handle multiple otherDocs
+                const otherDocs: IDocument[] = [];
+
+                fileData.forEach((file, index) => {
+                    const s3Result = s3Results[s3ResultIndex++];
+                    uploadedS3Keys.push(s3Result.key);
+
+                    const document: IDocument = {
+                        filename: s3Result.key.split('/').pop() || '',
+                        originalName: s3Result.originalName,
+                        path: s3Result.url,
+                        uploadedAt: s3Result.uploadedAt,
+                        documentType: 'other',
+                        s3Key: s3Result.key,
+                        s3Url: s3Result.url,
+                        size: s3Result.size,
+                        mimetype: s3Result.mimetype
+                    };
+
+                    otherDocs.push(document);
+
+                    uploadResults.push({
+                        documentType: fieldname as StudentDocumentType,
+                        success: true,
+                        document: document
+                    });
+                });
+
+                // Update student documents
+                if (!student.studentDocuments) {
+                    student.studentDocuments = {};
+                }
+                student.studentDocuments.otherDocs = otherDocs;
+
+            } else if (!Array.isArray(fileData)) {
+                // Handle single file
+                const s3Result = s3Results[s3ResultIndex++];
+                uploadedS3Keys.push(s3Result.key);
+
+                const document: IDocument = {
+                    filename: s3Result.key.split('/').pop() || '',
+                    originalName: s3Result.originalName,
+                    path: s3Result.url,
+                    uploadedAt: s3Result.uploadedAt,
+                    documentType: fieldname === 'passport' ? 'passport' : 'certificate',
+                    s3Key: s3Result.key,
+                    s3Url: s3Result.url,
+                    size: s3Result.size,
+                    mimetype: s3Result.mimetype
+                };
+
+                // Update student documents
+                if (!student.studentDocuments) {
+                    student.studentDocuments = {};
+                }
+
+                (student.studentDocuments as any)[fieldname] = document;
+
+                uploadResults.push({
+                    documentType: fieldname as StudentDocumentType,
+                    success: true,
+                    document: document
+                });
+            }
+        });
+
+        // Save student with updated documents
+        await student.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Documents uploaded successfully',
+            data: {
+                studentId: student._id,
+                uploadResults: uploadResults,
+                totalUploaded: uploadResults.filter(r => r.success).length,
+                totalFailed: uploadResults.filter(r => !r.success).length
+            }
+        });
+
+    } catch (error: any) {
+        console.error('Bulk document upload error:', error);
+
+        // Cleanup uploaded files from S3 if there was an error
+        try {
+            const uploadedS3Keys = (req as any).uploadedS3Keys || [];
+            if (uploadedS3Keys.length > 0) {
+                await cleanupFilesFromS3(uploadedS3Keys);
+            }
+        } catch (cleanupError) {
+            console.error('Error cleaning up S3 files:', cleanupError);
+        }
+
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error during document upload'
+        });
+    }
+};
+
+// @desc    Get student documents
+// @route   GET /api/students/:id/documents
+// @access  Agent, Admin, SuperAdmin
+export const getStudentDocuments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const student = await Student.findById(req.params.id)
+            .select('name email studentDocuments');
+
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            if (student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to you.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            if (student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Student documents retrieved successfully',
+            data: {
+                studentId: student._id,
+                studentName: student.name,
+                studentEmail: student.email,
+                documents: student.studentDocuments || {}
+            }
+        });
+    } catch (error) {
+        console.error('Get student documents error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Delete a specific document
+// @route   DELETE /api/students/:id/documents/:documentType
+// @access  Agent, Admin
+export const deleteStudentDocument = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const { documentType } = req.params;
+        const student = await Student.findById(req.params.id);
+
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            if (student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to you.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            if (student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Student does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        if (!student.studentDocuments) {
+            res.status(404).json({
+                success: false,
+                message: 'No documents found for this student'
+            });
+            return;
+        }
+
+        // Get the document to delete
+        let documentToDelete: IDocument | undefined;
+
+        if (documentType === 'otherDocs') {
+            // For otherDocs, we need to specify which one to delete
+            const { index } = req.query;
+            if (index === undefined) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Index is required for deleting otherDocs'
+                });
+                return;
+            }
+
+            const docIndex = parseInt(index as string);
+            if (student.studentDocuments.otherDocs && student.studentDocuments.otherDocs[docIndex]) {
+                documentToDelete = student.studentDocuments.otherDocs[docIndex];
+                student.studentDocuments.otherDocs.splice(docIndex, 1);
+            }
+        } else {
+            // For single document types
+            documentToDelete = (student.studentDocuments as any)[documentType];
+            if (documentToDelete) {
+                (student.studentDocuments as any)[documentType] = undefined;
+            }
+        }
+
+        if (!documentToDelete) {
+            res.status(404).json({
+                success: false,
+                message: 'Document not found'
+            });
+            return;
+        }
+
+        // Delete from S3 if s3Key exists
+        if (documentToDelete.s3Key) {
+            try {
+                const { deleteFileFromS3 } = await import('../services/s3Service');
+                await deleteFileFromS3(documentToDelete.s3Key);
+            } catch (s3Error) {
+                console.error('Error deleting file from S3:', s3Error);
+                // Continue with database deletion even if S3 deletion fails
+            }
+        }
+
+        // Save the updated student
+        await student.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Document deleted successfully',
+            data: {
+                deletedDocument: {
+                    documentType: documentType,
+                    originalName: documentToDelete.originalName,
+                    deletedAt: new Date()
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Delete student document error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'

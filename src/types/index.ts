@@ -70,6 +70,7 @@ export interface IStudent extends BaseDocument {
     nationality?: string;
     passportNumber?: string;
     documents: IDocument[];
+    studentDocuments?: IStudentDocuments;
     status: 'active' | 'inactive' | 'pending' | 'completed';
     totalPaid?: number;
     totalAmount?: number;
@@ -94,6 +95,43 @@ export interface IDocument {
     path: string;
     uploadedAt: Date;
     documentType: 'passport' | 'visa' | 'certificate' | 'other';
+    s3Key?: string;
+    s3Url?: string;
+    size?: number;
+    mimetype?: string;
+}
+
+// Specific document types for student documents
+export type StudentDocumentType =
+    | 'profilePicture'
+    | 'matricCertificate'
+    | 'matricMarksSheet'
+    | 'intermediateCertificate'
+    | 'intermediateMarkSheet'
+    | 'degree'
+    | 'transcript'
+    | 'languageCertificate'
+    | 'passport'
+    | 'experienceLetter'
+    | 'birthCertificate'
+    | 'familyRegistration'
+    | 'otherDocs';
+
+// Student documents interface
+export interface IStudentDocuments {
+    profilePicture?: IDocument;
+    matricCertificate?: IDocument;
+    matricMarksSheet?: IDocument;
+    intermediateCertificate?: IDocument;
+    intermediateMarkSheet?: IDocument;
+    degree?: IDocument;
+    transcript?: IDocument;
+    languageCertificate?: IDocument;
+    passport?: IDocument;
+    experienceLetter?: IDocument;
+    birthCertificate?: IDocument;
+    familyRegistration?: IDocument;
+    otherDocs?: IDocument[];
 }
 
 // Payment interface
@@ -291,5 +329,33 @@ export interface UpdateCourseRequest {
 
 export interface LinkStudentToCourseRequest {
     courseId: string;
+}
+
+// Bulk document upload request interface
+export interface BulkDocumentUploadRequest {
+    studentId: string;
+    documents: {
+        profilePicture?: Express.Multer.File;
+        matricCertificate?: Express.Multer.File;
+        matricMarksSheet?: Express.Multer.File;
+        intermediateCertificate?: Express.Multer.File;
+        intermediateMarkSheet?: Express.Multer.File;
+        degree?: Express.Multer.File;
+        transcript?: Express.Multer.File;
+        languageCertificate?: Express.Multer.File;
+        passport?: Express.Multer.File;
+        experienceLetter?: Express.Multer.File;
+        birthCertificate?: Express.Multer.File;
+        familyRegistration?: Express.Multer.File;
+        otherDocs?: Express.Multer.File[];
+    };
+}
+
+// Document upload result interface
+export interface DocumentUploadResult {
+    documentType: StudentDocumentType;
+    success: boolean;
+    document?: IDocument;
+    error?: string;
 }
 
