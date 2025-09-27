@@ -1,17 +1,39 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+// Validate required environment variables
+const requiredEnvVars = {
+    AWS_REGION: process.env.AWS_REGION || 'eu-north-1',
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+};
+
+// Check for missing environment variables
+const missingVars = Object.entries(requiredEnvVars)
+    .filter(([key, value]) => !value)
+    .map(([key]) => key);
+
+if (missingVars.length > 0) {
+    console.error('Missing required AWS environment variables:', missingVars.join(', '));
+    console.error('Please check your .env file and ensure all AWS S3 configuration variables are set.');
+}
 
 // Initialize S3 client
 const s3Client = new S3Client({
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: requiredEnvVars.AWS_REGION,
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: requiredEnvVars.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: requiredEnvVars.AWS_SECRET_ACCESS_KEY!,
     },
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
+const BUCKET_NAME = requiredEnvVars.AWS_S3_BUCKET_NAME!;
 
 export interface S3UploadResult {
     key: string;
@@ -40,7 +62,6 @@ export interface DocumentUploadData {
 export const uploadFileToS3 = async (file: { buffer: Buffer; originalname: string; mimetype: string; size: number; fieldname: string }, documentType: string, studentId: string): Promise<S3UploadResult> => {
     try {
         // Generate unique filename
-        const { v4: uuidv4 } = await import('uuid');
         const fileExtension = path.extname(file.originalname);
         const uniqueFilename = `${studentId}/${documentType}/${uuidv4()}${fileExtension}`;
 

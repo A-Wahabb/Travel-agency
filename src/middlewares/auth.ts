@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../config/auth';
 import Agent from '../models/Agent';
 import { AuthenticatedRequest, UserRole } from '../types';
+import mongoose from 'mongoose';
 
 export const authenticateToken = async (
     req: AuthenticatedRequest,
@@ -98,6 +99,15 @@ export const authorizeStudentAccess = async (
             return;
         }
 
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(studentId)) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid student ID format'
+            });
+            return;
+        }
+
         // Import Student model dynamically to avoid circular dependencies
         const Student = (await import('../models/Student')).default;
         const student = await Student.findById(studentId);
@@ -145,6 +155,34 @@ export const authorizeStudentAccess = async (
         });
     } catch (error) {
         console.error('Student authorization error:', error);
+
+        // Handle specific MongoDB errors
+        if (error instanceof mongoose.Error.CastError) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid student ID format'
+            });
+            return;
+        }
+
+        if (error instanceof mongoose.Error.ValidationError) {
+            res.status(400).json({
+                success: false,
+                message: 'Validation error: ' + error.message
+            });
+            return;
+        }
+
+        // Handle other known errors
+        if (error instanceof Error) {
+            res.status(500).json({
+                success: false,
+                message: 'Server error: ' + error.message
+            });
+            return;
+        }
+
+        // Fallback for unknown errors
         res.status(500).json({
             success: false,
             message: 'Server error during authorization'
@@ -172,6 +210,15 @@ export const authorizePaymentAccess = async (
             res.status(400).json({
                 success: false,
                 message: 'Payment ID is required'
+            });
+            return;
+        }
+
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid payment ID format'
             });
             return;
         }
@@ -223,6 +270,34 @@ export const authorizePaymentAccess = async (
         });
     } catch (error) {
         console.error('Payment authorization error:', error);
+
+        // Handle specific MongoDB errors
+        if (error instanceof mongoose.Error.CastError) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid payment ID format'
+            });
+            return;
+        }
+
+        if (error instanceof mongoose.Error.ValidationError) {
+            res.status(400).json({
+                success: false,
+                message: 'Validation error: ' + error.message
+            });
+            return;
+        }
+
+        // Handle other known errors
+        if (error instanceof Error) {
+            res.status(500).json({
+                success: false,
+                message: 'Server error: ' + error.message
+            });
+            return;
+        }
+
+        // Fallback for unknown errors
         res.status(500).json({
             success: false,
             message: 'Server error during authorization'
