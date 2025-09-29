@@ -70,6 +70,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/offices', officeRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/courses', courseRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 
