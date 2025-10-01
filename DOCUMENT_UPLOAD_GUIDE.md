@@ -196,9 +196,9 @@ Add the following environment variables to your `.env` file:
 
 ```env
 # AWS S3 Configuration
-AWS_REGION=eu-north-1
-AWS_ACCESS_KEY_ID=your_aws_access_key_id
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+APP_AWS_REGION=eu-north-1
+APP_AWS_ACCESS_KEY_ID=your_APP_AWS_ACCESS_KEY_ID
+APP_AWS_SECRET_ACCESS_KEY=your_APP_AWS_SECRET_ACCESS_KEY
 AWS_S3_BUCKET_NAME=your_s3_bucket_name
 ```
 

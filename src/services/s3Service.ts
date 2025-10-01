@@ -9,9 +9,9 @@ import { optimizeFile, shouldOptimizeFile, getFileSizeString, OptimizationOption
 dotenv.config();
 // Validate required environment variables
 const requiredEnvVars = {
-    AWS_REGION: process.env.AWS_REGION || 'us-east-1',
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    APP_AWS_REGION: process.env.APP_AWS_REGION || 'us-east-1',
+    APP_AWS_ACCESS_KEY_ID: process.env.APP_AWS_ACCESS_KEY_ID,
+    APP_AWS_SECRET_ACCESS_KEY: process.env.APP_AWS_SECRET_ACCESS_KEY,
     AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
 };
 
@@ -27,10 +27,10 @@ if (missingVars.length > 0) {
 
 // Initialize S3 client
 const s3Client = new S3Client({
-    region: requiredEnvVars.AWS_REGION,
+    region: requiredEnvVars.APP_AWS_REGION,
     credentials: {
-        accessKeyId: requiredEnvVars.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: requiredEnvVars.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: requiredEnvVars.APP_AWS_ACCESS_KEY_ID!,
+        secretAccessKey: requiredEnvVars.APP_AWS_SECRET_ACCESS_KEY!,
     },
 });
 
@@ -118,7 +118,7 @@ export const uploadFileToS3 = async (
 
         await s3Client.send(uploadCommand);
 
-        
+
         // Generate presigned URL for access (valid for 1 hour)
         const getCommand = new GetObjectCommand({
             Bucket: BUCKET_NAME,
