@@ -151,8 +151,6 @@ dist/               # Compiled JavaScript output (generated)
 | PUT | `/api/students/:id` | Update student |
 | DELETE | `/api/students/:id` | Delete student |
 | POST | `/api/students/:id/documents` | Upload student document |
-| GET | `/api/students/:id/options` | Get student options |
-| PUT | `/api/students/:id/options` | Update student options |
 
 **Note:** 
 - **Agent**: `officeId` and `agentId` are automatically set to the agent's office and ID
@@ -323,96 +321,6 @@ Fields:
 - documentType: 'passport' | 'visa' | 'certificate' | 'other'
 ```
 
-## 📋 Student Options Management
-
-The student options system allows tracking the progress of a student's application process through various stages. Each option can be set to `true` or `false` to indicate completion status.
-
-### Available Options
-- **clients**: Student has been registered as a client
-- **initialPayment**: Initial payment has been completed
-- **documents**: Required documents have been submitted
-- **applications**: Application forms have been submitted
-- **offerLetterSecured**: Offer letter has been received
-- **secondPaymentDone**: Second payment has been completed
-- **visaApplication**: Visa application has been submitted
-- **visaSecured**: Visa has been approved and secured
-- **finalPayment**: Final payment has been completed
-
-### Get Student Options
-```
-GET /api/students/:id/options
-Authorization: Bearer <token>
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student options retrieved successfully",
-  "data": {
-    "_id": "student_id",
-    "name": "John Student",
-    "email": "john@example.com",
-    "studentOptions": {
-      "clients": true,
-      "initialPayment": true,
-      "documents": false,
-      "applications": false,
-      "offerLetterSecured": false,
-      "secondPaymentDone": false,
-      "visaApplication": false,
-      "visaSecured": false,
-      "finalPayment": false
-    }
-  }
-}
-```
-
-### Update Student Options
-```
-PUT /api/students/:id/options
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "clients": true,
-  "initialPayment": true,
-  "documents": true,
-  "applications": false,
-  "offerLetterSecured": false,
-  "secondPaymentDone": false,
-  "visaApplication": false,
-  "visaSecured": false,
-  "finalPayment": false
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student options updated successfully",
-  "data": {
-    "_id": "student_id",
-    "name": "John Student",
-    "email": "john@example.com",
-    "studentOptions": {
-      "clients": true,
-      "initialPayment": true,
-      "documents": true,
-      "applications": false,
-      "offerLetterSecured": false,
-      "secondPaymentDone": false,
-      "visaApplication": false,
-      "visaSecured": false,
-      "finalPayment": false
-    }
-  }
-}
-```
-
-**Note:** Only the options you want to update need to be included in the request body. Unspecified options will remain unchanged.
-
 ## 🗄 Database Schema
 
 ### Office
@@ -468,17 +376,6 @@ Content-Type: application/json
     documentType: 'passport' | 'visa' | 'certificate' | 'other'
   }],
   status: 'active' | 'inactive' | 'pending' | 'completed',
-  studentOptions: {
-    clients: boolean,
-    initialPayment: boolean,
-    documents: boolean,
-    applications: boolean,
-    offerLetterSecured: boolean,
-    secondPaymentDone: boolean,
-    visaApplication: boolean,
-    visaSecured: boolean,
-    finalPayment: boolean
-  },
   createdAt: Date,
   updatedAt: Date
 }

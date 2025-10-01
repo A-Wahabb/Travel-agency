@@ -5,7 +5,8 @@ import Office from '../models/Office';
 import Course from '../models/Course';
 import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest, LinkStudentToCourseRequest, BulkDocumentUploadRequest, DocumentUploadResult, StudentDocumentType } from '../types';
 import { getFileInfo } from '../middlewares/upload';
-import { uploadFileToS3, uploadMultipleFilesToS3, cleanupFilesFromS3 } from '../services/s3Service';
+import { uploadFileToS3, uploadMultipleFilesToS3, cleanupFilesFromS3, deleteMultipleFilesFromS3, getOldDocumentKeys, getOldOtherDocsKeys, deleteFileFromS3 } from '../services/s3Service';
+import { DocumentCleanupService } from '../services/documentCleanupService';
 import { organizeUploadedFiles, validateDocumentTypes, getFileInfoForS3 } from '../middlewares/studentDocumentUpload';
 
 // @desc    Get all students
@@ -346,6 +347,9 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
 // @route   POST /api/students/:id/documents
 // @access  Agent
 export const uploadDocument = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    let uploadedS3Key: string | null = null;
+    let oldS3Key: string | null = null;
+
     try {
         const { documentType = 'other' } = req.body;
 
@@ -366,25 +370,79 @@ export const uploadDocument = async (req: AuthenticatedRequest, res: Response): 
             return;
         }
 
-        const fileInfo = getFileInfo(req.file);
+        // Check if there's an existing document of this type to replace
+        const currentStudentDocuments = student.studentDocuments || {};
+        const existingDocument = currentStudentDocuments[documentType as keyof typeof currentStudentDocuments];
+
+        // Only handle single documents for this endpoint (not otherDocs array)
+        if (existingDocument && !Array.isArray(existingDocument) && existingDocument.s3Key) {
+            oldS3Key = existingDocument.s3Key;
+        }
+
+        // Upload to S3 with optimization
+        const optimizationOptions = {
+            maxWidth: 1920,
+            maxHeight: 1080,
+            quality: 85,
+            maxSizeKB: 1024 // 1MB
+        };
+        const s3Result = await uploadFileToS3(req.file, documentType, req.params.id, optimizationOptions);
+        uploadedS3Key = s3Result.key;
+
         const document: IDocument = {
-            filename: fileInfo.filename,
-            originalName: fileInfo.originalname,
-            path: fileInfo.path,
-            uploadedAt: new Date(),
-            documentType: documentType as 'passport' | 'visa' | 'certificate' | 'other'
+            filename: s3Result.key.split('/').pop() || '',
+            originalName: s3Result.originalName,
+            path: s3Result.url,
+            uploadedAt: s3Result.uploadedAt,
+            documentType: documentType as 'passport' | 'visa' | 'certificate' | 'other',
+            s3Key: s3Result.key,
+            s3Url: s3Result.url,
+            size: s3Result.size,
+            mimetype: s3Result.mimetype
         };
 
-        student.documents.push(document);
+        // Initialize studentDocuments if it doesn't exist
+        if (!student.studentDocuments) {
+            student.studentDocuments = {};
+        }
+
+        // Replace the document in studentDocuments
+        (student.studentDocuments as any)[documentType] = document;
+
         await student.save();
+
+        // Delete old document from S3 after successful upload and save
+        if (oldS3Key) {
+            try {
+                await deleteFileFromS3(oldS3Key);
+                console.log(`Deleted old ${documentType} document from S3: ${oldS3Key}`);
+            } catch (deleteError) {
+                console.error('Error deleting old document from S3:', deleteError);
+                // Don't fail the entire operation if cleanup fails
+            }
+        }
 
         res.status(200).json({
             success: true,
             message: 'Document uploaded successfully',
-            data: document
+            data: {
+                ...document,
+                oldDocumentDeleted: !!oldS3Key
+            }
         });
     } catch (error) {
         console.error('Upload document error:', error);
+
+        // Cleanup uploaded file from S3 if there was an error
+        if (uploadedS3Key) {
+            try {
+                await deleteFileFromS3(uploadedS3Key);
+                console.log(`Cleaned up uploaded file due to error: ${uploadedS3Key}`);
+            } catch (cleanupError) {
+                console.error('Error cleaning up uploaded file:', cleanupError);
+            }
+        }
+
         res.status(500).json({
             success: false,
             message: 'Server error'
@@ -406,13 +464,59 @@ export const deleteStudent = async (req: AuthenticatedRequest, res: Response): P
             return;
         }
 
+        // Collect all S3 keys to delete
+        const s3KeysToDelete: string[] = [];
+
+        if (student.studentDocuments) {
+            // Get keys from individual documents
+            const documentTypes = [
+                'profilePicture', 'matricCertificate', 'matricMarksSheet',
+                'intermediateCertificate', 'intermediateMarkSheet', 'degree',
+                'transcript', 'languageCertificate', 'passport',
+                'experienceLetter', 'birthCertificate', 'familyRegistration'
+            ];
+
+            documentTypes.forEach(docType => {
+                const doc = (student.studentDocuments as any)[docType];
+                if (doc && doc.s3Key) {
+                    s3KeysToDelete.push(doc.s3Key);
+                }
+            });
+
+            // Get keys from otherDocs array
+            if (student.studentDocuments.otherDocs) {
+                student.studentDocuments.otherDocs.forEach(doc => {
+                    if (doc.s3Key) {
+                        s3KeysToDelete.push(doc.s3Key);
+                    }
+                });
+            }
+        }
+
         // Soft delete
         student.status = 'inactive';
         await student.save();
 
+        // Delete all documents from S3 after successful save
+        if (s3KeysToDelete.length > 0) {
+            try {
+                const deleteResults = await deleteMultipleFilesFromS3(s3KeysToDelete);
+                console.log(`Deleted ${deleteResults.success.length} student documents from S3`);
+                if (deleteResults.failed.length > 0) {
+                    console.warn(`Failed to delete ${deleteResults.failed.length} documents:`, deleteResults.failed);
+                }
+            } catch (deleteError) {
+                console.error('Error deleting student documents from S3:', deleteError);
+                // Don't fail the operation if S3 cleanup fails
+            }
+        }
+
         res.status(200).json({
             success: true,
-            message: 'Student deleted successfully'
+            message: 'Student deleted successfully',
+            data: {
+                documentsDeleted: s3KeysToDelete.length
+            }
         });
     } catch (error) {
         console.error('Delete student error:', error);
@@ -750,6 +854,9 @@ export const unlinkStudentFromCourse = async (req: AuthenticatedRequest, res: Re
 // @route   POST /api/students/:id/documents/bulk
 // @access  Agent, Admin
 export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    let uploadedS3Keys: string[] = [];
+    let oldS3KeysToDelete: string[] = [];
+
     try {
         if (!req.user) {
             res.status(401).json({
@@ -795,10 +902,22 @@ export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Respon
         const organizedFiles = organizeUploadedFiles(files);
         validateDocumentTypes(organizedFiles);
 
+        // Store current student documents for cleanup
+        const currentStudentDocuments = student.studentDocuments || {};
+        const documentTypesToReplace = Object.keys(organizedFiles);
+
+        // Extract old S3 keys that need to be deleted
+        oldS3KeysToDelete = getOldDocumentKeys(currentStudentDocuments, documentTypesToReplace);
+
+        // Handle otherDocs replacement
+        if (organizedFiles.otherDocs) {
+            const oldOtherDocsKeys = getOldOtherDocsKeys(currentStudentDocuments.otherDocs || []);
+            oldS3KeysToDelete.push(...oldOtherDocsKeys);
+        }
+
         // Prepare documents for S3 upload
         const documentsToUpload: Array<{ file: { buffer: Buffer; originalname: string; mimetype: string; size: number; fieldname: string }; documentType: string; studentId: string }> = [];
         const uploadResults: DocumentUploadResult[] = [];
-        const uploadedS3Keys: string[] = [];
 
         // Process each document type
         Object.keys(organizedFiles).forEach(fieldname => {
@@ -835,8 +954,14 @@ export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Respon
             }
         });
 
-        // Upload files to S3
-        const s3Results = await uploadMultipleFilesToS3(documentsToUpload);
+        // Upload files to S3 with optimization
+        const optimizationOptions = {
+            maxWidth: 1920,
+            maxHeight: 1080,
+            quality: 85,
+            maxSizeKB: 1024 // 1MB
+        };
+        const s3Results = await uploadMultipleFilesToS3(documentsToUpload, optimizationOptions);
 
         // Process S3 results and create document records
         let s3ResultIndex = 0;
@@ -914,6 +1039,20 @@ export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Respon
         // Save student with updated documents
         await student.save();
 
+        // Delete old documents from S3 after successful upload and save
+        if (oldS3KeysToDelete.length > 0) {
+            try {
+                const deleteResults = await deleteMultipleFilesFromS3(oldS3KeysToDelete);
+                console.log(`Deleted ${deleteResults.success.length} old documents from S3`);
+                if (deleteResults.failed.length > 0) {
+                    console.warn(`Failed to delete ${deleteResults.failed.length} old documents:`, deleteResults.failed);
+                }
+            } catch (deleteError) {
+                console.error('Error deleting old documents from S3:', deleteError);
+                // Don't fail the entire operation if cleanup fails
+            }
+        }
+
         res.status(200).json({
             success: true,
             message: 'Documents uploaded successfully',
@@ -921,7 +1060,8 @@ export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Respon
                 studentId: student._id,
                 uploadResults: uploadResults,
                 totalUploaded: uploadResults.filter(r => r.success).length,
-                totalFailed: uploadResults.filter(r => !r.success).length
+                totalFailed: uploadResults.filter(r => !r.success).length,
+                oldDocumentsDeleted: oldS3KeysToDelete.length
             }
         });
 
@@ -930,9 +1070,9 @@ export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Respon
 
         // Cleanup uploaded files from S3 if there was an error
         try {
-            const uploadedS3Keys = (req as any).uploadedS3Keys || [];
             if (uploadedS3Keys.length > 0) {
                 await cleanupFilesFromS3(uploadedS3Keys);
+                console.log(`Cleaned up ${uploadedS3Keys.length} uploaded files due to error`);
             }
         } catch (cleanupError) {
             console.error('Error cleaning up S3 files:', cleanupError);
@@ -1096,11 +1236,12 @@ export const deleteStudentDocument = async (req: AuthenticatedRequest, res: Resp
         // Delete from S3 if s3Key exists
         if (documentToDelete.s3Key) {
             try {
-                const { deleteFileFromS3 } = await import('../services/s3Service');
                 await deleteFileFromS3(documentToDelete.s3Key);
+                console.log(`Successfully deleted document from S3: ${documentToDelete.s3Key}`);
             } catch (s3Error) {
                 console.error('Error deleting file from S3:', s3Error);
                 // Continue with database deletion even if S3 deletion fails
+                // This ensures the database stays consistent even if S3 cleanup fails
             }
         }
 
@@ -1123,6 +1264,71 @@ export const deleteStudentDocument = async (req: AuthenticatedRequest, res: Resp
         res.status(500).json({
             success: false,
             message: 'Server error'
+        });
+    }
+};
+
+// @desc    Clean up orphaned documents (Admin only)
+// @route   POST /api/students/cleanup/documents
+// @access  SuperAdmin
+export const cleanupOrphanedDocuments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user || req.user.role !== 'SuperAdmin') {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. SuperAdmin role required.'
+            });
+            return;
+        }
+
+        console.log('Starting orphaned document cleanup...');
+        const cleanupResult = await DocumentCleanupService.performScheduledCleanup();
+
+        res.status(200).json({
+            success: true,
+            message: 'Document cleanup completed successfully',
+            data: {
+                orphanedFilesFound: cleanupResult.orphanedFiles.length,
+                filesDeleted: cleanupResult.deletedFiles.length,
+                failedDeletions: cleanupResult.failedDeletions.length,
+                spaceSaved: DocumentCleanupService.formatFileSize(cleanupResult.totalSpaceSaved),
+                cleanupDetails: cleanupResult
+            }
+        });
+    } catch (error) {
+        console.error('Document cleanup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during document cleanup'
+        });
+    }
+};
+
+// @desc    Get storage statistics
+// @route   GET /api/students/storage/stats
+// @access  SuperAdmin
+export const getStorageStats = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user || req.user.role !== 'SuperAdmin') {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. SuperAdmin role required.'
+            });
+            return;
+        }
+
+        const stats = await DocumentCleanupService.getStorageStats();
+
+        res.status(200).json({
+            success: true,
+            message: 'Storage statistics retrieved successfully',
+            data: stats
+        });
+    } catch (error) {
+        console.error('Get storage stats error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error retrieving storage statistics'
         });
     }
 };

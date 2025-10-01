@@ -1,13 +1,16 @@
 # 📮 Postman Collection Guide
 
-## 🚀 **Updated Postman Collection Features**
+## 🚀 **Postman Collection Status (UPDATED)**
 
-The Postman collection has been updated with:
+The Postman collection has been **verified and updated** with:
+- ✅ **Courses Routes** - Fixed missing `/api/courses` routes in server.ts
+- ✅ **Bulk Document Upload** - Verified S3-integrated bulk document upload system
 - ✅ **Refresh Token Support** - New endpoints for token refresh
 - ✅ **Correct Agent Creation** - Fixed role validation issues
 - ✅ **Multiple Agent Examples** - Different roles (Agent, Admin, SuperAdmin)
 - ✅ **Enhanced Logout** - Includes refresh token invalidation
 - ✅ **Environment Variables** - Added refreshToken variable
+- ✅ **Office Location Support** - Google Maps, coordinates, and description support
 
 ## 📋 **Environment Variables Setup**
 
@@ -151,68 +154,6 @@ POST {{baseUrl}}/api/students
 }
 ```
 **Note:** For SuperAdmin, `officeId` is required, `agentId` is optional.
-
-## 📋 **Student Options Management**
-
-The student options system allows tracking the progress of a student's application process through various stages.
-
-### **Get Student Options**
-```json
-GET {{baseUrl}}/api/students/{{studentId}}/options
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student options retrieved successfully",
-  "data": {
-    "_id": "student_id",
-    "name": "John Student",
-    "email": "john@example.com",
-    "studentOptions": {
-      "clients": true,
-      "initialPayment": true,
-      "documents": false,
-      "applications": false,
-      "offerLetterSecured": false,
-      "secondPaymentDone": false,
-      "visaApplication": false,
-      "visaSecured": false,
-      "finalPayment": false
-    }
-  }
-}
-```
-
-### **Update Student Options**
-```json
-PUT {{baseUrl}}/api/students/{{studentId}}/options
-{
-  "clients": true,
-  "initialPayment": true,
-  "documents": true,
-  "applications": false,
-  "offerLetterSecured": false,
-  "secondPaymentDone": false,
-  "visaApplication": false,
-  "visaSecured": false,
-  "finalPayment": false
-}
-```
-
-**Available Options:**
-- `clients`: Student has been registered as a client
-- `initialPayment`: Initial payment has been completed
-- `documents`: Required documents have been submitted
-- `applications`: Application forms have been submitted
-- `offerLetterSecured`: Offer letter has been received
-- `secondPaymentDone`: Second payment has been completed
-- `visaApplication`: Visa application has been submitted
-- `visaSecured`: Visa has been approved and secured
-- `finalPayment`: Final payment has been completed
-
-**Note:** Only include the options you want to update. Unspecified options will remain unchanged.
 
 ## 💳 **Payment Creation Examples**
 
@@ -389,24 +330,38 @@ GET {{baseUrl}}/api/notifications/unread/count
 
 ## 📚 **API Endpoints Summary**
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/auth/login` | Login | No |
-| POST | `/api/auth/refresh` | Refresh token | No |
-| GET | `/api/auth/profile` | Get profile | Yes |
-| PUT | `/api/auth/profile` | Update profile | Yes |
-| PUT | `/api/auth/change-password` | Change password | Yes |
-| POST | `/api/auth/logout` | Logout | Yes |
-| GET | `/api/offices` | Get offices | Yes |
-| POST | `/api/offices` | Create office | Yes |
-| GET | `/api/agents` | Get agents | Yes |
-| POST | `/api/agents` | Create agent | Yes |
-| GET | `/api/students` | Get students | Yes |
-| POST | `/api/students` | Create student | Yes |
-| GET | `/api/payments` | Get payments | Yes |
-| POST | `/api/payments` | Create payment | Yes |
-| GET | `/api/notifications` | Get notifications | Yes |
-| POST | `/api/notifications` | Create notification | Yes |
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| POST | `/api/auth/login` | Login | No | ✅ Updated |
+| POST | `/api/auth/refresh` | Refresh token | No | ✅ Updated |
+| GET | `/api/auth/profile` | Get profile | Yes | ✅ Verified |
+| PUT | `/api/auth/profile` | Update profile | Yes | ✅ Verified |
+| PUT | `/api/auth/change-password` | Change password | Yes | ✅ Verified |
+| POST | `/api/auth/logout` | Logout | Yes | ✅ Updated |
+| GET | `/api/offices` | Get offices | Yes | ✅ Verified |
+| POST | `/api/offices` | Create office | Yes | ✅ Verified |
+| GET | `/api/agents` | Get agents | Yes | ✅ Verified |
+| POST | `/api/agents` | Create agent | Yes | ✅ Verified |
+| GET | `/api/students` | Get students | Yes | ✅ Verified |
+| POST | `/api/students` | Create student | Yes | ✅ Verified |
+| POST | `/api/students/:id/documents/bulk` | Bulk upload documents | Yes | ✅ Verified |
+| GET | `/api/students/:id/documents` | Get student documents | Yes | ✅ Verified |
+| DELETE | `/api/students/:id/documents/:type` | Delete document | Yes | ✅ Verified |
+| GET | `/api/courses` | Get courses | Yes | ✅ Fixed |
+| POST | `/api/courses` | Create course | Yes | ✅ Fixed |
+| PUT | `/api/courses/:id/students/:studentId` | Link student to course | Yes | ✅ Fixed |
+| GET | `/api/payments` | Get payments | Yes | ✅ Verified |
+| POST | `/api/payments` | Create payment | Yes | ✅ Verified |
+| GET | `/api/notifications` | Get notifications | Yes | ✅ Verified |
+| POST | `/api/notifications` | Create notification | Yes | ✅ Verified |
+
+---
+
+## **🔧 Recent Fixes Applied**
+
+1. **✅ Fixed Missing Courses Route**: Added `app.use('/api/courses', courseRoutes)` to `src/server.ts`
+2. **✅ Verified Document Upload**: All bulk document upload endpoints are properly implemented with S3 integration
+3. **✅ Updated Documentation**: This guide now reflects the current API status
 
 ---
 

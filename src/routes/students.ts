@@ -14,7 +14,9 @@ import {
     unlinkStudentFromCourse,
     uploadBulkDocuments,
     getStudentDocuments,
-    deleteStudentDocument
+    deleteStudentDocument,
+    cleanupOrphanedDocuments,
+    getStorageStats
 } from '../controllers/student';
 import {
     authenticateToken,
@@ -163,6 +165,10 @@ router.put('/:id/options', authenticateToken, authorizeStudentAccess, studentOpt
 // Course linking routes
 router.put('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), linkCourseValidation, validate, linkStudentToCourse);
 router.delete('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), unlinkStudentFromCourse);
+
+// Storage management routes (SuperAdmin only)
+router.post('/cleanup/documents', authenticateToken, authorizeRoles('SuperAdmin'), cleanupOrphanedDocuments);
+router.get('/storage/stats', authenticateToken, authorizeRoles('SuperAdmin'), getStorageStats);
 
 export default router;
 
