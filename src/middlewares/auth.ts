@@ -75,6 +75,33 @@ export const authorizeSuperAdmin = authorizeRoles('SuperAdmin');
 export const authorizeAdmin = authorizeRoles('SuperAdmin', 'Admin');
 export const authorizeAgent = authorizeRoles('SuperAdmin', 'Admin', 'Agent');
 
+// Chat-specific authorization middleware
+export const authorizeChatAccess = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        // All authenticated users (SuperAdmin, Admin, and Agent) can access chat
+        // No role restrictions for chat access
+        next();
+    } catch (error) {
+        console.error('Chat authorization error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during authorization'
+        });
+    }
+};
+
 // Student-specific authorization middleware
 export const authorizeStudentAccess = async (
     req: AuthenticatedRequest,

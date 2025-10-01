@@ -359,3 +359,57 @@ export interface DocumentUploadResult {
     error?: string;
 }
 
+// Chat interface
+export interface IChat extends BaseDocument {
+    participants: string[]; // Array of agent IDs
+    chatType: 'direct' | 'group';
+    lastMessage?: string;
+    lastMessageAt?: Date;
+    lastMessageBy?: string; // ObjectId reference to Agent
+    isActive: boolean;
+    createdBy: string; // ObjectId reference to Agent
+}
+
+// Message interface
+export interface IMessage extends BaseDocument {
+    chatId: string;
+    senderId: string;
+    content: string;
+    messageType: 'text' | 'file' | 'image' | 'system';
+    isRead: boolean;
+    readBy: string[]; // Array of user IDs who read the message
+    attachments?: IMessageAttachment[];
+    replyTo?: string; // Message ID being replied to
+    editedAt?: Date;
+    isEdited: boolean;
+}
+
+// Message attachment interface
+export interface IMessageAttachment {
+    filename: string;
+    originalName: string;
+    path: string;
+    mimetype: string;
+    size: number;
+    uploadedAt: Date;
+    s3Key?: string;
+    s3Url?: string;
+}
+
+// Chat request interfaces
+export interface CreateChatRequest {
+    participantIds: string[];
+    chatType: 'direct' | 'group';
+}
+
+export interface SendMessageRequest {
+    chatId: string;
+    content: string;
+    messageType?: 'text' | 'file' | 'image' | 'system';
+    replyTo?: string;
+}
+
+export interface ChatQuery extends PaginationQuery {
+    search?: string;
+    chatType?: string;
+}

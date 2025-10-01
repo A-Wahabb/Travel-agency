@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Chat Client</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .debug-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .log {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Debug Chat Client</h1>
+
+    <div class="debug-section">
+        <h3>Server Configuration</h3>
+        <input type="text" id="serverUrl" value="http://localhost:5000" placeholder="Server URL">
+    </div>
+
+    <div class="debug-section">
+        <h3>Authentication Token</h3>
+        <textarea id="authToken" rows="4" placeholder="Paste your JWT token here..."></textarea>
+        <button onclick="testToken()">Test Token</button>
+        <button onclick="connectSocket()">Connect Socket</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Token Debug Info</h3>
+        <div id="tokenInfo"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Connection Log</h3>
+        <div id="connectionLog" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let socket = null;
+
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('connectionLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('connectionLog').innerHTML = '';
+        }
+
+        function testToken() {
+            const token = document.getElementById('authToken').value.trim();
+            const tokenInfo = document.getElementById('tokenInfo');
+
+            if (!token) {
+                tokenInfo.innerHTML = '<div class="error">No token provided</div>';
+                return;
+            }
+
+            try {
+                // Decode JWT token (without verification)
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Invalid JWT format');
+                }
+
+                const payload = JSON.parse(atob(parts[1]));
+                const header = JSON.parse(atob(parts[0]));
+
+                tokenInfo.innerHTML = `
+                    <div class="success">
+                        <strong>Token is valid format</strong><br>
+                        <strong>Header:</strong> ${JSON.stringify(header, null, 2)}<br>
+                        <strong>Payload:</strong> ${JSON.stringify(payload, null, 2)}<br>
+                        <strong>Expires:</strong> ${new Date(payload.exp * 1000).toLocaleString()}<br>
+                        <strong>User ID:</strong> ${payload.userId}<br>
+                        <strong>Role:</strong> ${payload.role}<br>
+                        <strong>Office ID:</strong> ${payload.officeId || 'None'}
+                    </div>
+                `;
+
+                // Check if token is expired
+                const now = Math.floor(Date.now() / 1000);
+                if (payload.exp && payload.exp < now) {
+                    tokenInfo.innerHTML += '<div class="error"><strong>⚠️ TOKEN IS EXPIRED!</strong></div>';
+                } else {
+                    tokenInfo.innerHTML += '<div class="success"><strong>✅ Token is not expired</strong></div>';
+                }
+
+                log(`Token decoded successfully. User: ${payload.userId}, Role: ${payload.role}`, 'success');
+
+            } catch (error) {
+                tokenInfo.innerHTML = `<div class="error">Error decoding token: ${error.message}</div>`;
+                log(`Token decode error: ${error.message}`, 'error');
+            }
+        }
+
+        function connectSocket() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const token = document.getElementById('authToken').value.trim();
+
+            if (!token) {
+                alert('Please enter a JWT token');
+                return;
+            }
+
+            log(`Attempting to connect to: ${serverUrl}`, 'info');
+            log(`Using token: ${token.substring(0, 50)}...`, 'info');
+
+            if (socket) {
+                socket.disconnect();
+            }
+
+            socket = io(serverUrl, {
+                auth: {
+                    token: token
+                },
+                transports: ['websocket', 'polling']
+            });
+
+            // Connection events
+            socket.on('connect', () => {
+                log('✅ Connected to server successfully!', 'success');
+                log(`Socket ID: ${socket.id}`, 'info');
+            });
+
+            socket.on('disconnect', (reason) => {
+                log(`❌ Disconnected from server. Reason: ${reason}`, 'error');
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`❌ Connection error: ${error.message}`, 'error');
+                log(`Error details: ${JSON.stringify(error, null, 2)}`, 'error');
+
+                // Additional debugging info
+                if (error.message.includes('Invalid token')) {
+                    log('🔍 Token validation failed. Check:', 'error');
+                    log('1. Token format is correct', 'error');
+                    log('2. Token is not expired', 'error');
+                    log('3. User exists and is active', 'error');
+                    log('4. User role is SuperAdmin or Admin (not Agent)', 'error');
+                }
+            });
+
+            // Test authentication by trying to join a chat
+            socket.on('connect', () => {
+                log('Testing authentication by sending a test event...', 'info');
+
+                // Send a test event to verify authentication
+                socket.emit('test_auth', { test: 'authentication check' });
+            });
+
+            socket.on('auth_test_response', (data) => {
+                log(`✅ Authentication test successful: ${JSON.stringify(data)}`, 'success');
+            });
+        }
+
+        // Auto-test token when pasted
+        document.getElementById('authToken').addEventListener('input', () => {
+            const token = document.getElementById('authToken').value.trim();
+            if (token.length > 50) { // Likely a valid token
+                testToken();
+            }
+        });
+    </script>
+</body>
+
+</html>

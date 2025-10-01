@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Helper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .form-group {
+            margin: 10px 0;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .result {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Chat Helper</h1>
+
+    <div class="section">
+        <h3>1. Get All Users</h3>
+        <div class="form-group">
+            <input type="text" id="jwtToken" placeholder="Enter your JWT token...">
+        </div>
+        <button onclick="getAllUsers()">Get All Users</button>
+        <div id="usersResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>2. Create Chat</h3>
+        <div class="form-group">
+            <input type="text" id="participantId" placeholder="Enter other admin's user ID...">
+        </div>
+        <button onclick="createChat()">Create Direct Chat</button>
+        <div id="chatResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>3. Get Your Chats</h3>
+        <button onclick="getMyChats()">Get My Chats</button>
+        <div id="chatsResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>4. Instructions</h3>
+        <ol>
+            <li>Enter your JWT token above</li>
+            <li>Click "Get All Users" to see available users (SuperAdmin, Admin, Agent)</li>
+            <li>Copy another user's ID (can be any role)</li>
+            <li>Paste it in "Create Chat" section and click "Create Direct Chat"</li>
+            <li>Copy the chat ID from the result</li>
+            <li>Use that chat ID in the chat-test-client.html</li>
+        </ol>
+        <p><strong>Note:</strong> All authenticated users (SuperAdmin, Admin, and Agent) can now participate in chats!</p>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function makeRequest(url, options = {}) {
+            const token = document.getElementById('jwtToken').value.trim();
+            if (!token) {
+                showError('Please enter JWT token first');
+                return null;
+            }
+
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+
+            try {
+                const response = await fetch(url, { ...defaultOptions, ...options });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+
+                return data;
+            } catch (error) {
+                showError(`Request failed: ${error.message}`);
+                return null;
+            }
+        }
+
+        function showError(message) {
+            const result = document.getElementById('usersResult');
+            result.className = 'result error';
+            result.innerHTML = message;
+        }
+
+        function showSuccess(message, elementId) {
+            const result = document.getElementById(elementId);
+            result.className = 'result success';
+            result.innerHTML = message;
+        }
+
+        async function getAllUsers() {
+            const data = await makeRequest(`${API_BASE}/agents`);
+            if (!data) return;
+
+            const users = data.data || [];
+            
+            let html = '<h4>Available Users (All Roles):</h4>';
+            users.forEach(user => {
+                const roleColor = user.role === 'SuperAdmin' ? '#e74c3c' : 
+                                 user.role === 'Admin' ? '#3498db' : '#2ecc71';
+                html += `
+                    <div style="margin: 5px 0; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                        <strong>${user.name}</strong> 
+                        <span style="color: ${roleColor}; font-weight: bold;">(${user.role})</span><br>
+                        <small>ID: ${user._id}</small><br>
+                        <small>Email: ${user.email}</small>
+                    </div>
+                `;
+            });
+            
+            showSuccess(html, 'usersResult');
+        }
+
+        async function createChat() {
+            const participantId = document.getElementById('participantId').value.trim();
+            if (!participantId) {
+                showError('Please enter participant ID');
+                return;
+            }
+
+            const data = await makeRequest(`${API_BASE}/chats`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    participantIds: [participantId],
+                    chatType: 'direct'
+                })
+            });
+
+            if (!data) return;
+
+            const chat = data.data;
+            const html = `
+                <h4>Chat Created Successfully!</h4>
+                <p><strong>Chat ID:</strong> ${chat._id}</p>
+                <p><strong>Participants:</strong> ${chat.participants.length}</p>
+                <p><strong>Type:</strong> ${chat.chatType}</p>
+                <p><strong>Copy this Chat ID and use it in chat-test-client.html</strong></p>
+            `;
+
+            showSuccess(html, 'chatResult');
+        }
+
+        async function getMyChats() {
+            const data = await makeRequest(`${API_BASE}/chats`);
+            if (!data) return;
+
+            const chats = data.data || [];
+
+            let html = '<h4>Your Chats:</h4>';
+            if (chats.length === 0) {
+                html += '<p>No chats found. Create a chat first.</p>';
+            } else {
+                chats.forEach(chat => {
+                    html += `
+                        <div style="margin: 5px 0; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                            <strong>Chat ID:</strong> ${chat._id}<br>
+                            <strong>Type:</strong> ${chat.chatType}<br>
+                            <strong>Participants:</strong> ${chat.participants.length}<br>
+                            <strong>Last Message:</strong> ${chat.lastMessage || 'None'}
+                        </div>
+                    `;
+                });
+            }
+
+            showSuccess(html, 'chatsResult');
+        }
+    </script>
+</body>
+
+</html>

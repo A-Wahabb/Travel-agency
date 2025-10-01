@@ -1,5 +1,9 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+// Load environment variables FIRST
 import dotenv from 'dotenv';
+dotenv.config();
+
+import express, { Application, Request, Response, NextFunction } from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -14,6 +18,7 @@ import studentRoutes from './routes/students';
 import courseRoutes from './routes/courses';
 import paymentRoutes from './routes/payments';
 import notificationRoutes from './routes/notifications';
+import chatRoutes from './routes/chats';
 
 // Import middleware
 import errorHandler from './middlewares/errorHandler';
@@ -21,11 +26,16 @@ import errorHandler from './middlewares/errorHandler';
 // Import database connection
 import connectDB from './config/db';
 
-// Load environment variables
-dotenv.config();
+// Import Socket.IO service
+import SocketService from './services/socketService';
+
 
 const app: Application = express();
+const server = createServer(app);
 const PORT: string | number = process.env.PORT || 5000;
+
+// Initialize Socket.IO service
+const socketService = new SocketService(server);
 
 // Security middleware
 app.use(helmet());
@@ -73,6 +83,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chats', chatRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
@@ -92,10 +103,11 @@ const startServer = async (): Promise<void> => {
         await connectDB();
 
         // Start server
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📊 Environment: ${process.env.NODE_ENV}`);
             console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+            console.log(`💬 Socket.IO server initialized for real-time chat`);
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
@@ -106,4 +118,5 @@ const startServer = async (): Promise<void> => {
 startServer();
 
 export default app;
+export { socketService };
 
