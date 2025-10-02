@@ -583,7 +583,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"John Updated\",\n  \"email\": \"john.updated@example.com\"\n}"
+                            "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"email\": \"john.updated@example.com\",\n  \"role\": \"Agent\",\n  \"officeId\": \"{{officeId}}\",\n  \"phone\": \"+1234567890\",\n  \"isActive\": true\n}",
+                            "description": "**Update Agent Details**\n\n**Available Fields for Update:**\n- `name`: Agent's full name (2-100 characters)\n- `email`: Agent's email address (must be unique)\n- `role`: Agent's role - 'SuperAdmin', 'Admin', or 'Agent'\n- `officeId`: MongoDB ObjectId of the office (required for Admin/Agent roles)\n- `phone`: Phone number (optional, valid format required)\n- `isActive`: Boolean flag to activate/deactivate agent\n\n**Validation Rules:**\n- All fields are optional for updates\n- Email must be unique if provided\n- Phone must match regex: /^[\\+]?[1-9][\\d]{0,15}$/\n- Role must be one of: 'SuperAdmin', 'Admin', 'Agent'\n- Office must exist if officeId is provided\n\n**Access Control:**\n- SuperAdmin can update any agent\n- Admin can only update agents in their own office\n- Cannot delete your own account\n\n**Response includes:**\n- Updated agent data with populated office information\n- Excludes password field for security"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/agents/{{agentId}}",
@@ -599,13 +600,215 @@
                     }
                 },
                 {
-                    "name": "Delete Agent",
+                    "name": "Update Agent - Partial Update",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "description": "Bearer token for authentication"
+                            },
+                            {
+                                "status": "active",
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "Content type header"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Jane Smith\",\n  \"phone\": \"+9876543210\"\n}",
+                            "description": "**Partial Agent Update Example**\n\nThis example shows how to update only specific fields without affecting others.\nYou can update any combination of fields - only provided fields will be updated.\n\nThe response will include the complete updated agent object with all fields."
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Agent - Role Change",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "description": "Bearer token for authentication"
+                            },
+                            {
+                                "status": "active",
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "Content type header"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"role\": \"Admin\",\n  \"officeId\": \"{{officeId}}\"\n}",
+                            "description": "**Agent Role Update Example**\n\n**Important:** When upgrading an agent to Admin role, officeId becomes mandatory.\nWhen downgrading from Admin to Agent, officeId should be provided.\nWhen changing to SuperAdmin, officeId is not required.\n\n**Role Hierarchy:**\n- SuperAdmin: Highest level, no office restriction\n- Admin: Office-level administration\n- Agent: Basic agent role"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Agent Password",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "description": "Bearer token for authentication"
+                            },
+                            {
+                                "status": "active",
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "Content type header"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newSecurePassword456\",\n  \"confirmPassword\": \"newSecurePassword456\"\n}",
+                            "description": "**Agent Password Update**\n\n**Important Security Features:**\n- Requires current password verification\n- Password confirmation validation\n- Minimum 6 characters requirement\n- Cannot reuse current password\n- Password hashing handled automatically\n\n**Required Fields:**\n- `currentPassword`: Agent's current password for verification\n- `newPassword`: New password (min 6 characters)\n- `confirmPassword`: Must match new password\n\n**Access Control:**\n- SuperAdmin: Can update any agent's password\n- Admin: Can update agents in their office\n- Agent: Can only update their own password\n\n**Password Security:**\n- Old password is verified before change\n- New password must be different from current\n- Password confirmation prevents typos\n- All passwords are securely hashed\n\n**Security Response:**\n- Only returns success message (no password data)\n- Sessions remain valid after password change"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}/password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}",
+                                "password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Own Password (Agent)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{agentToken}}",
+                                "description": "Bearer token for agent authentication"
+                            },
+                            {
+                                "status": "active",
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "description": "Content type header"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"currentPassword\": \"oldpassword123\",\n  \"newPassword\": \"agentNewPassword789\",\n  \"confirmPassword\": \"agentNewPassword789\"\n}",
+                            "description": "**Update Own Password Example**\n\nThis request shows how an agent can update their own password.\nUse `{{agentToken}}` which should contain the agent's JWT token.\nReplace `{{agentId}}` with the agent's own ID.\n\n**Steps:**\n1. Agent logs in to get authentication token\n2. Agent calls this endpoint with their own ID\n3. Provides current password for verification\n4. Sets new password with confirmation\n5. Receives success confirmation\n\n**Security for Agents:**\n- Agents can ONLY update their own passwords\n- Cannot update other agents' passwords\n- Must provide current password\n- All validation rules still apply"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}/password",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}",
+                                "password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Activate Agent",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "description": "Bearer token for authentication"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}/activate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}",
+                                "activate"
+                            ]
+                        },
+                        "description": "**Activate Agent**\n\nUsed to reactivate a previously deactivated agent.\n\n**Access Control:**\n- SuperAdmin: Can activate any agent\n- Admin: Can only activate agents in their office\n\n**Response includes:**\n- Updated agent status (isActive: true)\n- Agent basic info (id, name, email)\n\n**Common Use Cases:**\n- Restoring temporarily disabled agents\n- Re-enabling agents after suspension\n- Reactivating accounts after resolution of issues"
+                    }
+                },
+                {
+                    "name": "Deactivate Agent",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "description": "Bearer token for authentication"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}/deactivate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}",
+                                "deactivate"
+                            ]
+                        },
+                        "description": "**Deactivate Agent**\n\nUsed to temporarily disable an agent account (soft delete).\n\n**Key Features:**\n- Sets isActive to false without deleting data\n- Agent remains in system but cannot login\n- Can be reactivated later\n- Prevents self-deactivation\n\n**Access Control:**\n- SuperAdmin: Can deactivate any agent\n- Admin: Can only deactivate agents in their office\n\n**Response includes:**\n- Updated agent status (isActive: false)\n- Agent basic info (id, name, email)\n\n**Common Use Cases:**\n- Temporary suspension\n- Disciplinary actions\n- Temporary leave/departure\n- Account security measures"
+                    }
+                },
+                {
+                    "name": "Hard Delete Agent (SuperAdmin Only)",
                     "request": {
                         "method": "DELETE",
                         "header": [
                             {
+                                "status": "active",
                                 "key": "Authorization",
-                                "value": "Bearer {{token}}"
+                                "value": "Bearer {{superAdminToken}}",
+                                "description": "Bearer token for SuperAdmin authentication"
                             }
                         ],
                         "url": {
@@ -618,7 +821,35 @@
                                 "agents",
                                 "{{agentId}}"
                             ]
-                        }
+                        },
+                        "description": "**Permanent Agent Deletion**\n\n⚠️ **DANGER ZONE - SuperAdmin Only** ⚠️\n\nThis completely removes the agent from the database forever.\n\n**Critical Checks Performed:**\n🔍 **Dependency Analysis:** Checks for:\n- Associated students (needs reassignment)\n- Pending notifications (needs disposal)\n- Chat messages (needs archiving)\n- Chat participation (needs removal)\n- Chat ownership (needs transfer)\n\n**Response if Dependencies Exist:**\n```json\n{\n  \"success\": false,\n  \"message\": \"Cannot delete agent due to existing dependencies\",\n  \"dependencies\": {\n    \"students\": { \"count\": 3, \"studentNames\": [...] },\n    \"notifications\": { \"count\": 5, \"notificationIds\": [...] }\n  },\n  \"suggestions\": [\n    \"Reassign 3 student(s) to other agents\",\n    \"Delete or reassign 5 notification(s)\"\n  ]\n}\n```\n\n**Before Using:**\n1. Check dependencies first\n2. Reassign/clean up dependencies\n3. Then proceed with deletion\n4. Cannot be undone!\n\n**Security:**\n- Only SuperAdmin can delete\n- Cannot delete own account\n- Prevents cascade data loss"
+                    }
+                },
+                {
+                    "name": "Check Agent Dependencies (Before Delete)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "status": "active",
+                                "key": "Authorization",
+                                "value": "Bearer {{superAdminToken}}",
+                                "description": "Bearer token for SuperAdmin authentication"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/agents/{{agentId}}/dependencies",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "agents",
+                                "{{agentId}}",
+                                "dependencies"
+                            ]
+                        },
+                        "description": "**Dependency Check Helper**\n\nCheck what entities are linked to an agent before attempting hard delete.\n\n**Returns dependency information:**\n- Students assigned to agent\n- Notifications sent to agent\n- Messages sent by agent\n- Chats agent participates in\n- Chats created by agent\n\n**Usage:**\n1. Use this endpoint first\n2. Review dependencies\n3. Clean up dependencies manually\n4. Then proceed with hard delete\n\n**Note:** This endpoint calls the dependency checking internally, but provides detailed breakdown for planning deletion steps."
                     }
                 }
             ]
@@ -1268,8 +1499,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Computer Science\",\n  \"university\": \"Oxford University\",\n  \"department\": \"Engineering\",\n  \"country\": \"UK\",\n  \"city\": \"Oxford\",\n  \"intake\": \"Feb\",\n  \"isPrivate\": \"No\",\n  \"type\": \"Bachelors\",\n  \"fee\": \"25000\",\n  \"timePeriod\": \"4 Years\",\n  \"percentageRequirement\": \"60%\",\n  \"cgpaRequirement\": \"3.0\"\n}",
-                            "description": "**Validation Rules:**\n- `name`: Required, 2-200 characters\n- `university`: Required, 2-200 characters\n- `department`: Required, 2-100 characters\n- `country`: Required, 2-100 characters\n- `city`: Required, 2-100 characters\n- `intake`: Required, 1-50 characters\n- `isPrivate`: Required, either 'Yes' or 'No'\n- `type`: Required, 2-50 characters\n- `fee`: Required, 1-50 characters\n- `timePeriod`: Required, 1-50 characters\n- `percentageRequirement`: Required, 1-10 characters\n- `cgpaRequirement`: Required, 1-10 characters"
+                            "raw": "{\n  \"name\": \"Computer Science\",\n  \"university\": \"Oxford University\",\n  \"department\": \"Engineering\",\n  \"country\": \"UK\",\n  \"city\": \"Oxford\",\n  \"intake\": \"Feb\",\n  \"isPrivate\": \"No\",\n  \"type\": \"Bachelors\",\n  \"fee\": \"25000\",\n  \"timePeriod\": \"4 Years\",\n  \"percentageRequirement\": \"60%\",\n  \"cgpaRequirement\": \"3.0\",\n  \"languageTest\": \"IELTS\",\n  \"minBands\": \"6.5\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-200 characters\n- `university`: Required, 2-200 characters\n- `department`: Required, 2-100 characters\n- `country`: Required, 2-100 characters\n- `city`: Required, 2-100 characters\n- `intake`: Required, 1-50 characters\n- `isPrivate`: Required, either 'Yes' or 'No'\n- `type`: Required, 2-50 characters\n- `fee`: Required, 1-50 characters\n- `timePeriod`: Required, 1-50 characters\n- `percentageRequirement`: Required, 1-10 characters\n- `cgpaRequirement`: Required, 1-10 characters\n- `languageTest`: Required, 1-100 characters (e.g., IELTS, TOEFL, PTE)\n- `minBands`: Required, 1-50 characters (e.g., 6.5, 7.0, Pass)"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/courses",
@@ -1299,8 +1530,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Business Administration\",\n  \"university\": \"Harvard Business School\",\n  \"department\": \"Business\",\n  \"country\": \"United States\",\n  \"city\": \"Boston\",\n  \"intake\": \"Sep\",\n  \"isPrivate\": \"Yes\",\n  \"type\": \"Masters\",\n  \"fee\": \"75000\",\n  \"timePeriod\": \"2 Years\",\n  \"percentageRequirement\": \"70%\",\n  \"cgpaRequirement\": \"3.5\"\n}",
-                            "description": "**Validation Rules:**\n- `name`: Required, 2-200 characters\n- `university`: Required, 2-200 characters\n- `department`: Required, 2-100 characters\n- `country`: Required, 2-100 characters\n- `city`: Required, 2-100 characters\n- `intake`: Required, 1-50 characters\n- `isPrivate`: Required, either 'Yes' or 'No'\n- `type`: Required, 2-50 characters\n- `fee`: Required, 1-50 characters\n- `timePeriod`: Required, 1-50 characters\n- `percentageRequirement`: Required, 1-10 characters\n- `cgpaRequirement`: Required, 1-10 characters"
+                            "raw": "{\n  \"name\": \"Business Administration\",\n  \"university\": \"Harvard Business School\",\n  \"department\": \"Business\",\n  \"country\": \"United States\",\n  \"city\": \"Boston\",\n  \"intake\": \"Sep\",\n  \"isPrivate\": \"Yes\",\n  \"type\": \"Masters\",\n  \"fee\": \"75000\",\n  \"timePeriod\": \"2 Years\",\n  \"percentageRequirement\": \"70%\",\n  \"cgpaRequirement\": \"3.5\",\n  \"languageTest\": \"TOEFL\",\n  \"minBands\": \"100\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Required, 2-200 characters\n- `university`: Required, 2-200 characters\n- `department`: Required, 2-100 characters\n- `country`: Required, 2-100 characters\n- `city`: Required, 2-100 characters\n- `intake`: Required, 1-50 characters\n- `isPrivate`: Required, either 'Yes' or 'No'\n- `type`: Required, 2-50 characters\n- `fee`: Required, 1-50 characters\n- `timePeriod`: Required, 1-50 characters\n- `percentageRequirement`: Required, 1-10 characters\n- `cgpaRequirement`: Required, 1-10 characters\n- `languageTest`: Required, 1-100 characters (e.g., IELTS, TOEFL, PTE)\n- `minBands`: Required, 1-50 characters (e.g., 6.5, 7.0, Pass)\n\n**Examples:**\n- IELTS: 6.5 bands\n- TOEFL: 100 (iBT)\n- PTE: 65\n- Cambridge: C1 Advanced"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/courses",
@@ -1353,8 +1584,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Updated Computer Science\",\n  \"university\": \"Oxford University\",\n  \"department\": \"Computer Science\",\n  \"fee\": \"26000\",\n  \"percentageRequirement\": \"65%\"\n}",
-                            "description": "**Validation Rules:**\n- `name`: Optional, 2-200 characters\n- `university`: Optional, 2-200 characters\n- `department`: Optional, 2-100 characters\n- `country`: Optional, 2-100 characters\n- `city`: Optional, 2-100 characters\n- `intake`: Optional, 1-50 characters\n- `isPrivate`: Optional, either 'Yes' or 'No'\n- `type`: Optional, 2-50 characters\n- `fee`: Optional, 1-50 characters\n- `timePeriod`: Optional, 1-50 characters\n- `percentageRequirement`: Optional, 1-10 characters\n- `cgpaRequirement`: Optional, 1-10 characters\n- `isActive`: Optional, boolean"
+                            "raw": "{\n  \"name\": \"Updated Computer Science\",\n  \"university\": \"Oxford University\",\n  \"department\": \"Computer Science\",\n  \"fee\": \"26000\",\n  \"percentageRequirement\": \"65%\",\n  \"languageTest\": \"IELTS\",\n  \"minBands\": \"6.5\"\n}",
+                            "description": "**Validation Rules:**\n- `name`: Optional, 2-200 characters\n- `university`: Optional, 2-200 characters\n- `department`: Optional, 2-100 characters\n- `country`: Optional, 2-100 characters\n- `city`: Optional, 2-100 characters\n- `intake`: Optional, 1-50 characters\n- `isPrivate`: Optional, either 'Yes' or 'No'\n- `type`: Optional, 2-50 characters\n- `fee`: Optional, 1-50 characters\n- `timePeriod`: Optional, 1-50 characters\n- `percentageRequirement`: Optional, 1-10 characters\n- `cgpaRequirement`: Optional, 1-10 characters\n- `languageTest`: Optional, 1-100 characters\n- `minBands`: Optional, 1-50 characters\n- `isActive`: Optional, boolean\n\n**Partial Update:** Only include fields that need to be updated."
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/courses/{{courseId}}",

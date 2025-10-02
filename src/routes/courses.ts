@@ -57,7 +57,13 @@ const createCourseValidation = [
         .withMessage('Percentage requirement must be between 1 and 10 characters'),
     body('cgpaRequirement')
         .isLength({ min: 1, max: 10 })
-        .withMessage('CGPA requirement must be between 1 and 10 characters')
+        .withMessage('CGPA requirement must be between 1 and 10 characters'),
+    body('languageTest')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Language test requirement must be between 1 and 100 characters'),
+    body('minBands')
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Minimum bands requirement must be between 1 and 50 characters')
 ];
 
 const updateCourseValidation = [
@@ -109,6 +115,14 @@ const updateCourseValidation = [
         .optional()
         .isLength({ min: 1, max: 10 })
         .withMessage('CGPA requirement must be between 1 and 10 characters'),
+    body('languageTest')
+        .optional()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Language test requirement must be between 1 and 100 characters'),
+    body('minBands')
+        .optional()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Minimum bands requirement must be between 1 and 50 characters'),
     body('isActive')
         .optional()
         .isBoolean()

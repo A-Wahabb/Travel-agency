@@ -71,10 +71,22 @@ const courseSchema = new Schema<ICourseDocument>({
         maxlength: [10, 'Percentage requirement cannot exceed 10 characters']
     },
     cgpaRequirement: {
-            type: String,
+        type: String,
         required: [true, 'CGPA requirement is required'],
-            trim: true,
+        trim: true,
         maxlength: [10, 'CGPA requirement cannot exceed 10 characters']
+    },
+    languageTest: {
+        type: String,
+        required: [true, 'Language test requirement is required'],
+        trim: true,
+        maxlength: [100, 'Language test requirement cannot exceed 100 characters']
+    },
+    minBands: {
+        type: String,
+        required: [true, 'Minimum bands requirement is required'],
+        trim: true,
+        maxlength: [50, 'Minimum bands requirement cannot exceed 50 characters']
     },
     isActive: {
         type: Boolean,

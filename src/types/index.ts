@@ -52,6 +52,8 @@ export interface ICourse extends BaseDocument {
     timePeriod: string;
     percentageRequirement: string;
     cgpaRequirement: string;
+    languageTest: string;
+    minBands: string;
     isActive: boolean;
     createdBy: string;
     studentCount?: number;
@@ -309,6 +311,8 @@ export interface CreateCourseRequest {
     timePeriod: string;
     percentageRequirement: string;
     cgpaRequirement: string;
+    languageTest: string;
+    minBands: string;
 }
 
 export interface UpdateCourseRequest {
@@ -324,6 +328,8 @@ export interface UpdateCourseRequest {
     timePeriod?: string;
     percentageRequirement?: string;
     cgpaRequirement?: string;
+    languageTest?: string;
+    minBands?: string;
     isActive?: boolean;
 }
 

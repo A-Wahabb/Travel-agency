@@ -5,11 +5,17 @@ import {
     getAgent,
     createAgent,
     updateAgent,
-    deleteAgent
+    activateAgent,
+    deactivateAgent,
+    hardDeleteAgent,
+    updateAgentPassword,
+    checkAgentDependenciesEndpoint
 } from '../controllers/agent';
 import {
     authenticateToken,
-    authorizeAdmin
+    authorizeAdmin,
+    authorizeAgent,
+    authorizeSuperAdmin
 } from '../middlewares/auth';
 import validate from '../middlewares/validate';
 
@@ -66,12 +72,32 @@ const updateAgentValidation = [
         .withMessage('isActive must be a boolean')
 ];
 
+const updateAgentPasswordValidation = [
+    body('currentPassword')
+        .notEmpty()
+        .withMessage('Current password is required'),
+    body('newPassword')
+        .isLength({ min: 6 })
+        .withMessage('New password must be at least 6 characters'),
+    body('confirmPassword')
+        .custom((value, { req }) => {
+            if (value !== req.body.newPassword) {
+                throw new Error('Password confirmation does not match new password');
+            }
+            return true;
+        })
+];
+
 // Routes
 router.get('/', authenticateToken, authorizeAdmin, getAgents);
 router.get('/:id', authenticateToken, authorizeAdmin, getAgent);
 router.post('/', authenticateToken, authorizeAdmin, createAgentValidation, validate, createAgent);
 router.put('/:id', authenticateToken, authorizeAdmin, updateAgentValidation, validate, updateAgent);
-router.delete('/:id', authenticateToken, authorizeAdmin, deleteAgent);
+router.put('/:id/activate', authenticateToken, authorizeAdmin, activateAgent);
+router.put('/:id/deactivate', authenticateToken, authorizeAdmin, deactivateAgent);
+router.put('/:id/password', authenticateToken, authorizeAgent, updateAgentPasswordValidation, validate, updateAgentPassword);
+router.get('/:id/dependencies', authenticateToken, authorizeSuperAdmin, checkAgentDependenciesEndpoint);
+router.delete('/:id', authenticateToken, authorizeSuperAdmin, hardDeleteAgent);
 
 export default router;
 
