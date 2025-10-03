@@ -6,21 +6,21 @@ export interface IPaymentDocument extends IPayment, Document { }
 const paymentSchema = new Schema<IPaymentDocument>({
     studentId: {
         type: String,
-        required: [true, 'Student ID is required']
+        required: [true, 'studentId:Student ID is required']
     },
     amount: {
         type: Number,
-        required: [true, 'Payment amount is required'],
+        required: [true, 'amount:Payment amount is required'],
         min: [0, 'Amount cannot be negative']
     },
     date: {
         type: Date,
-        required: [true, 'Payment date is required'],
+        required: [true, 'date:Payment date is required'],
         default: Date.now
     },
     createdBy: {
         type: String,
-        required: [true, 'Created by field is required']
+        required: [true, 'createdBy:Created by field is required']
     },
     paymentMethod: {
         type: String,

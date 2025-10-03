@@ -7,13 +7,13 @@ export interface IAgentDocument extends IAgent, Document { }
 const agentSchema = new Schema<IAgentDocument>({
     name: {
         type: String,
-        required: [true, 'Agent name is required'],
+        required: [true, 'name:Agent name is required'],
         trim: true,
         maxlength: [100, 'Name cannot exceed 100 characters']
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
+        required: [true, 'email:Email is required'],
         unique: true,
         lowercase: true,
         trim: true,
@@ -21,7 +21,7 @@ const agentSchema = new Schema<IAgentDocument>({
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
+        required: [true, 'password:Password is required'],
         minlength: [6, 'Password must be at least 6 characters']
     },
     role: {

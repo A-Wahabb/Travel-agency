@@ -24,109 +24,109 @@ const router = express.Router();
 const createCourseValidation = [
     body('name')
         .isLength({ min: 2, max: 200 })
-        .withMessage('Course name must be between 2 and 200 characters'),
+        .withMessage('name:Course name must be between 2 and 200 characters'),
     body('university')
         .isLength({ min: 2, max: 200 })
-        .withMessage('University name must be between 2 and 200 characters'),
+        .withMessage('university:University name must be between 2 and 200 characters'),
     body('department')
         .isLength({ min: 2, max: 100 })
-        .withMessage('Department must be between 2 and 100 characters'),
+        .withMessage('department:Department must be between 2 and 100 characters'),
     body('country')
         .isLength({ min: 2, max: 100 })
-        .withMessage('Country must be between 2 and 100 characters'),
+        .withMessage('country:Country must be between 2 and 100 characters'),
     body('city')
         .isLength({ min: 2, max: 100 })
-        .withMessage('City must be between 2 and 100 characters'),
+        .withMessage('city:City must be between 2 and 100 characters'),
     body('intake')
         .isLength({ min: 1, max: 50 })
-        .withMessage('Intake must be between 1 and 50 characters'),
+        .withMessage('intake:Intake must be between 1 and 50 characters'),
     body('isPrivate')
         .isIn(['Yes', 'No'])
-        .withMessage('IsPrivate must be either Yes or No'),
+        .withMessage('isPrivate:IsPrivate must be either Yes or No'),
     body('type')
         .isLength({ min: 2, max: 50 })
-        .withMessage('Type must be between 2 and 50 characters'),
+        .withMessage('type:Type must be between 2 and 50 characters'),
     body('fee')
         .isLength({ min: 1, max: 50 })
-        .withMessage('Fee must be between 1 and 50 characters'),
+        .withMessage('fee:Fee must be between 1 and 50 characters'),
     body('timePeriod')
         .isLength({ min: 1, max: 50 })
-        .withMessage('Time period must be between 1 and 50 characters'),
+        .withMessage('timePeriod:Time period must be between 1 and 50 characters'),
     body('percentageRequirement')
         .isLength({ min: 1, max: 10 })
-        .withMessage('Percentage requirement must be between 1 and 10 characters'),
+        .withMessage('percentageRequirement:Percentage requirement must be between 1 and 10 characters'),
     body('cgpaRequirement')
         .isLength({ min: 1, max: 10 })
-        .withMessage('CGPA requirement must be between 1 and 10 characters'),
+        .withMessage('cgpaRequirement:CGPA requirement must be between 1 and 10 characters'),
     body('languageTest')
         .isLength({ min: 1, max: 100 })
-        .withMessage('Language test requirement must be between 1 and 100 characters'),
+        .withMessage('languageTest:Language test requirement must be between 1 and 100 characters'),
     body('minBands')
         .isLength({ min: 1, max: 50 })
-        .withMessage('Minimum bands requirement must be between 1 and 50 characters')
+        .withMessage('minBands:Minimum bands requirement must be between 1 and 50 characters')
 ];
 
 const updateCourseValidation = [
     body('name')
         .optional()
         .isLength({ min: 2, max: 200 })
-        .withMessage('Course name must be between 2 and 200 characters'),
+        .withMessage('name:Course name must be between 2 and 200 characters'),
     body('university')
         .optional()
         .isLength({ min: 2, max: 200 })
-        .withMessage('University name must be between 2 and 200 characters'),
+        .withMessage('university:University name must be between 2 and 200 characters'),
     body('department')
         .optional()
         .isLength({ min: 2, max: 100 })
-        .withMessage('Department must be between 2 and 100 characters'),
+        .withMessage('department:Department must be between 2 and 100 characters'),
     body('country')
         .optional()
         .isLength({ min: 2, max: 100 })
-        .withMessage('Country must be between 2 and 100 characters'),
+        .withMessage('country:Country must be between 2 and 100 characters'),
     body('city')
         .optional()
         .isLength({ min: 2, max: 100 })
-        .withMessage('City must be between 2 and 100 characters'),
+        .withMessage('city:City must be between 2 and 100 characters'),
     body('intake')
         .optional()
         .isLength({ min: 1, max: 50 })
-        .withMessage('Intake must be between 1 and 50 characters'),
+        .withMessage('intake:Intake must be between 1 and 50 characters'),
     body('isPrivate')
         .optional()
         .isIn(['Yes', 'No'])
-        .withMessage('IsPrivate must be either Yes or No'),
+        .withMessage('isPrivate:IsPrivate must be either Yes or No'),
     body('type')
         .optional()
         .isLength({ min: 2, max: 50 })
-        .withMessage('Type must be between 2 and 50 characters'),
+        .withMessage('type:Type must be between 2 and 50 characters'),
     body('fee')
         .optional()
         .isLength({ min: 1, max: 50 })
-        .withMessage('Fee must be between 1 and 50 characters'),
+        .withMessage('fee:Fee must be between 1 and 50 characters'),
     body('timePeriod')
         .optional()
         .isLength({ min: 1, max: 50 })
-        .withMessage('Time period must be between 1 and 50 characters'),
+        .withMessage('timePeriod:Time period must be between 1 and 50 characters'),
     body('percentageRequirement')
         .optional()
         .isLength({ min: 1, max: 10 })
-        .withMessage('Percentage requirement must be between 1 and 10 characters'),
+        .withMessage('percentageRequirement:Percentage requirement must be between 1 and 10 characters'),
     body('cgpaRequirement')
         .optional()
         .isLength({ min: 1, max: 10 })
-        .withMessage('CGPA requirement must be between 1 and 10 characters'),
+        .withMessage('cgpaRequirement:CGPA requirement must be between 1 and 10 characters'),
     body('languageTest')
         .optional()
         .isLength({ min: 1, max: 100 })
-        .withMessage('Language test requirement must be between 1 and 100 characters'),
+        .withMessage('languageTest:Language test requirement must be between 1 and 100 characters'),
     body('minBands')
         .optional()
         .isLength({ min: 1, max: 50 })
-        .withMessage('Minimum bands requirement must be between 1 and 50 characters'),
+        .withMessage('minBands:Minimum bands requirement must be between 1 and 50 characters'),
     body('isActive')
         .optional()
         .isBoolean()
-        .withMessage('isActive must be a boolean value')
+        .withMessage('isActive:isActive must be a boolean value')
 ];
 
 // Routes

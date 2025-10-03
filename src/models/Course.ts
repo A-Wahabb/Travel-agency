@@ -6,85 +6,85 @@ export interface ICourseDocument extends ICourse, Document { }
 const courseSchema = new Schema<ICourseDocument>({
     name: {
         type: String,
-        required: [true, 'Course name is required'],
+        required: [true, 'name:Course name is required'],
         trim: true,
         maxlength: [200, 'Course name cannot exceed 200 characters']
     },
     university: {
         type: String,
-        required: [true, 'University name is required'],
+        required: [true, 'university:University name is required'],
         trim: true,
         maxlength: [200, 'University name cannot exceed 200 characters']
     },
     department: {
         type: String,
-        required: [true, 'Department is required'],
+        required: [true, 'department:Department is required'],
         trim: true,
         maxlength: [100, 'Department cannot exceed 100 characters']
     },
     country: {
         type: String,
-        required: [true, 'Country is required'],
+        required: [true, 'country:Country is required'],
         trim: true,
         maxlength: [100, 'Country cannot exceed 100 characters']
     },
     city: {
         type: String,
-        required: [true, 'City is required'],
+        required: [true, 'city:City is required'],
         trim: true,
         maxlength: [100, 'City cannot exceed 100 characters']
     },
     intake: {
         type: String,
-        required: [true, 'Intake is required'],
+        required: [true, 'intake:Intake is required'],
         trim: true,
         maxlength: [50, 'Intake cannot exceed 50 characters']
     },
     isPrivate: {
         type: String,
-        required: [true, 'IsPrivate field is required'],
+        required: [true, 'isPrivate:IsPrivate field is required'],
         enum: ['Yes', 'No'],
         default: 'No'
     },
     type: {
         type: String,
-        required: [true, 'Course type is required'],
+        required: [true, 'type:Course type is required'],
         trim: true,
         maxlength: [50, 'Course type cannot exceed 50 characters']
     },
     fee: {
         type: String,
-        required: [true, 'Fee is required'],
+        required: [true, 'fee:Fee is required'],
         trim: true,
         maxlength: [50, 'Fee cannot exceed 50 characters']
     },
     timePeriod: {
         type: String,
-        required: [true, 'Time period is required'],
+        required: [true, 'timePeriod:Time period is required'],
         trim: true,
         maxlength: [50, 'Time period cannot exceed 50 characters']
     },
     percentageRequirement: {
         type: String,
-        required: [true, 'Percentage requirement is required'],
+        required: [true, 'percentageRequirement:Percentage requirement is required'],
         trim: true,
         maxlength: [10, 'Percentage requirement cannot exceed 10 characters']
     },
     cgpaRequirement: {
         type: String,
-        required: [true, 'CGPA requirement is required'],
+        required: [true, 'cgpaRequirement:CGPA requirement is required'],
         trim: true,
         maxlength: [10, 'CGPA requirement cannot exceed 10 characters']
     },
     languageTest: {
         type: String,
-        required: [true, 'Language test requirement is required'],
+        required: [true, 'languageTest:Language test requirement is required'],
         trim: true,
         maxlength: [100, 'Language test requirement cannot exceed 100 characters']
     },
     minBands: {
         type: String,
-        required: [true, 'Minimum bands requirement is required'],
+        required: [true, 'minBands:Minimum bands requirement is required'],
         trim: true,
         maxlength: [50, 'Minimum bands requirement cannot exceed 50 characters']
     },
@@ -94,7 +94,7 @@ const courseSchema = new Schema<ICourseDocument>({
     },
     createdBy: {
         type: String,
-        required: [true, 'Created by field is required']
+        required: [true, 'createdBy:Created by field is required']
     }
 }, {
     timestamps: true,

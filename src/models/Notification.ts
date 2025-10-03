@@ -6,21 +6,21 @@ export interface INotificationDocument extends INotification, Document { }
 const notificationSchema = new Schema<INotificationDocument>({
     officeId: {
         type: String,
-        required: [true, 'Office ID is required']
+        required: [true, 'officeId:Office ID is required']
     },
     agentId: {
         type: String,
-        required: [true, 'Agent ID is required']
+        required: [true, 'agentId:Agent ID is required']
     },
     message: {
         type: String,
-        required: [true, 'Message is required'],
+        required: [true, 'message:Message is required'],
         trim: true,
         maxlength: [500, 'Message cannot exceed 500 characters']
     },
     title: {
         type: String,
-        required: [true, 'Title is required'],
+        required: [true, 'title:Title is required'],
         trim: true,
         maxlength: [100, 'Title cannot exceed 100 characters']
     },
