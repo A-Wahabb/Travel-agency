@@ -62,6 +62,13 @@ const studentDocumentsSchema = new Schema<IStudentDocuments>({
 }, { _id: false });
 
 const studentSchema = new Schema<IStudentDocument>({
+    studentCode: {
+        type: String,
+        required: [true, 'Student code is required'],
+        unique: true,
+        trim: true,
+        maxlength: [50, 'Student code cannot exceed 50 characters']
+    },
     name: {
         type: String,
         required: [true, 'Student name is required'],
@@ -81,6 +88,12 @@ const studentSchema = new Schema<IStudentDocument>({
         required: [true, 'Password is required'],
         minlength: [6, 'Password must be at least 6 characters']
     },
+    phone: {
+        type: String,
+        required: [true, 'Phone number is required'],
+        trim: true,
+        match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    },
     officeId: {
         type: String,
         required: [true, 'Office ID is required']
@@ -92,11 +105,6 @@ const studentSchema = new Schema<IStudentDocument>({
     courseId: {
         type: String,
         ref: 'Course'
-    },
-    phone: {
-        type: String,
-        trim: true,
-        match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
     },
     dateOfBirth: {
         type: Date
@@ -117,6 +125,96 @@ const studentSchema = new Schema<IStudentDocument>({
         type: String,
         enum: ['active', 'inactive', 'pending', 'completed'],
         default: 'active'
+    },
+
+    // Academic Information
+    qualification: {
+        type: String,
+        required: [true, 'Qualification is required'],
+        trim: true,
+        maxlength: [200, 'Qualification cannot exceed 200 characters']
+    },
+    score: {
+        type: Number,
+        required: [true, 'Score is required'],
+        min: [0, 'Score cannot be negative'],
+        max: [1000, 'Score cannot exceed 1000']
+    },
+    percentage: {
+        type: Number,
+        required: [true, 'Percentage is required'],
+        min: [0, 'Percentage cannot be negative'],
+        max: [100, 'Percentage cannot exceed 100']
+    },
+    lastInstitute: {
+        type: String,
+        required: [true, 'Last institute is required'],
+        trim: true,
+        maxlength: [200, 'Last institute cannot exceed 200 characters']
+    },
+    experience: {
+        type: String,
+        required: [true, 'Experience is required'],
+        trim: true,
+        maxlength: [500, 'Experience cannot exceed 500 characters']
+    },
+    test: {
+        type: String,
+        required: [true, 'Test is required'],
+        trim: true,
+        maxlength: [100, 'Test cannot exceed 100 characters']
+    },
+    testScore: {
+        type: Number,
+        required: [true, 'Test score is required'],
+        min: [0, 'Test score cannot be negative'],
+        max: [1000, 'Test score cannot exceed 1000']
+    },
+
+    // Attestation Status
+    boardAttestation: {
+        type: String,
+        required: [true, 'Board attestation status is required'],
+        enum: ['Yes', 'No', 'Partial'],
+        default: 'No'
+    },
+    ibccAttestation: {
+        type: String,
+        required: [true, 'IBCC attestation status is required'],
+        enum: ['Yes', 'No', 'Partial'],
+        default: 'No'
+    },
+    hecAttestation: {
+        type: String,
+        required: [true, 'HEC attestation status is required'],
+        enum: ['Yes', 'No', 'Partial'],
+        default: 'No'
+    },
+    mofaAttestation: {
+        type: String,
+        required: [true, 'MOFA attestation status is required'],
+        enum: ['Yes', 'No', 'Partial'],
+        default: 'No'
+    },
+    apostilleAttestation: {
+        type: String,
+        required: [true, 'Apostille attestation status is required'],
+        enum: ['Yes', 'No', 'Partial'],
+        default: 'No'
+    },
+
+    // Country Preferences
+    country1: {
+        type: String,
+        required: [true, 'Primary country preference is required'],
+        trim: true,
+        maxlength: [100, 'Country name cannot exceed 100 characters']
+    },
+    country2: {
+        type: String,
+        required: [true, 'Secondary country preference is required'],
+        trim: true,
+        maxlength: [100, 'Country name cannot exceed 100 characters']
     },
     studentOptions: {
         clients: {

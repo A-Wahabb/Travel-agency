@@ -28,9 +28,14 @@ export const getAgents = async (req: AuthenticatedRequest, res: Response): Promi
         const skip = (pageNum - 1) * limitNum;
 
         // Build query based on role
-        const query: any = { isActive: true };
+        const query: any = {};
 
-        if (req.user.role === 'Admin') {
+        // SuperAdmin can see all agents (active and inactive)
+        // Admin can only see active agents in their office
+        if (req.user.role === 'SuperAdmin') {
+            // No isActive filter for SuperAdmin - they see all agents
+        } else if (req.user.role === 'Admin') {
+            query.isActive = true; // Admin only sees active agents
             query.officeId = req.user.officeId;
         }
 
@@ -47,7 +52,7 @@ export const getAgents = async (req: AuthenticatedRequest, res: Response): Promi
 
         const agents = await Agent.find(query)
             .populate('officeId', 'name address location')
-            .select('-password')
+            .select('-password -refreshTokens -createdAt -updatedAt')
             .sort(sort)
             .skip(skip)
             .limit(limitNum);
@@ -90,7 +95,7 @@ export const getAgent = async (req: AuthenticatedRequest, res: Response): Promis
 
         const agent = await Agent.findById(req.params.id)
             .populate('officeId', 'name address location')
-            .select('-password');
+            .select('-password -refreshTokens -createdAt -updatedAt');
 
         if (!agent) {
             res.status(404).json({

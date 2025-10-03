@@ -61,13 +61,14 @@ export interface ICourse extends BaseDocument {
 
 // Student interface
 export interface IStudent extends BaseDocument {
+    studentCode: string;
     name: string;
     email: string;
     password: string;
+    phone: string;
     officeId: string;
     agentId: string;
     courseId?: string;
-    phone?: string;
     dateOfBirth?: Date;
     nationality?: string;
     passportNumber?: string;
@@ -76,6 +77,27 @@ export interface IStudent extends BaseDocument {
     status: 'active' | 'inactive' | 'pending' | 'completed';
     totalPaid?: number;
     totalAmount?: number;
+
+    // Academic Information
+    qualification: string;
+    score: number;
+    percentage: number;
+    lastInstitute: string;
+    experience: string;
+    test: string;
+    testScore: number;
+
+    // Attestation Status
+    boardAttestation: 'Yes' | 'No' | 'Partial';
+    ibccAttestation: 'Yes' | 'No' | 'Partial';
+    hecAttestation: 'Yes' | 'No' | 'Partial';
+    mofaAttestation: 'Yes' | 'No' | 'Partial';
+    apostilleAttestation: 'Yes' | 'No' | 'Partial';
+
+    // Country Preferences
+    country1: string;
+    country2: string;
+
     // Student application stages/options
     studentOptions: {
         clients: boolean;
@@ -257,15 +279,66 @@ export interface CreateAgentRequest {
 }
 
 export interface CreateStudentRequest {
+    studentCode: string;
     name: string;
     email: string;
     password: string;
+    phone: string;
     officeId?: string;
     agentId?: string;
+    dateOfBirth?: string;
+    nationality?: string;
+    passportNumber?: string;
+
+    // Academic Information
+    qualification: string;
+    score: number;
+    percentage: number;
+    lastInstitute: string;
+    experience: string;
+    test: string;
+    testScore: number;
+
+    // Attestation Status
+    boardAttestation: 'Yes' | 'No' | 'Partial';
+    ibccAttestation: 'Yes' | 'No' | 'Partial';
+    hecAttestation: 'Yes' | 'No' | 'Partial';
+    mofaAttestation: 'Yes' | 'No' | 'Partial';
+    apostilleAttestation: 'Yes' | 'No' | 'Partial';
+
+    // Country Preferences
+    country1: string;
+    country2: string;
+}
+
+export interface UpdateStudentRequest {
+    studentCode?: string;
+    name?: string;
+    email?: string;
     phone?: string;
     dateOfBirth?: string;
     nationality?: string;
     passportNumber?: string;
+
+    // Academic Information
+    qualification?: string;
+    score?: number;
+    percentage?: number;
+    lastInstitute?: string;
+    experience?: string;
+    test?: string;
+    testScore?: number;
+
+    // Attestation Status
+    boardAttestation?: 'Yes' | 'No' | 'Partial';
+    ibccAttestation?: 'Yes' | 'No' | 'Partial';
+    hecAttestation?: 'Yes' | 'No' | 'Partial';
+    mofaAttestation?: 'Yes' | 'No' | 'Partial';
+    apostilleAttestation?: 'Yes' | 'No' | 'Partial';
+
+    // Country Preferences
+    country1?: string;
+    country2?: string;
 }
 
 export interface UpdateStudentOptionsRequest {
