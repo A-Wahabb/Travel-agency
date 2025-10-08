@@ -64,7 +64,6 @@ export interface IStudent extends BaseDocument {
     studentCode: string;
     name: string;
     email: string;
-    password: string;
     phone: string;
     officeId: string;
     agentId: string;
@@ -282,7 +281,6 @@ export interface CreateStudentRequest {
     studentCode: string;
     name: string;
     email: string;
-    password: string;
     phone: string;
     officeId?: string;
     agentId?: string;

@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IStudent, IDocument, IStudentDocuments } from '../types';
-import { hashPassword } from '../config/auth';
 
 export interface IStudentDocument extends IStudent, Document { }
 
@@ -82,11 +81,6 @@ const studentSchema = new Schema<IStudentDocument>({
         lowercase: true,
         trim: true,
         match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
-    },
-    password: {
-        type: String,
-        required: [true, 'password:Password is required'],
-        minlength: [6, 'Password must be at least 6 characters']
     },
     phone: {
         type: String,
@@ -281,20 +275,6 @@ studentSchema.virtual('totalAmount', {
         { $group: { _id: null, total: { $sum: '$amount' } } }
     ],
     justOne: true
-});
-
-// Hash password before saving
-studentSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) {
-        return next();
-    }
-
-    try {
-        this.password = await hashPassword(this.password);
-        next();
-    } catch (error) {
-        next(error as Error);
-    }
 });
 
 export default mongoose.model<IStudentDocument>('Student', studentSchema);

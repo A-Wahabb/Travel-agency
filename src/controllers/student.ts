@@ -53,7 +53,6 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
             .populate('officeId', 'name address location')
             .populate('agentId', 'name email officeId')
             .populate('courseId', 'name university country field level')
-            .select('-password')
             .sort(sort)
             .skip(skip)
             .limit(limitNum);
@@ -89,8 +88,7 @@ export const getStudent = async (req: AuthenticatedRequest, res: Response): Prom
         const student = await Student.findById(req.params.id)
             .populate('officeId', 'name address location')
             .populate('agentId', 'name email officeId')
-            .populate('courseId', 'name university country field level')
-            .select('-password');
+            .populate('courseId', 'name university country field level');
 
         res.status(200).json({
             success: true,
@@ -111,7 +109,34 @@ export const getStudent = async (req: AuthenticatedRequest, res: Response): Prom
 // @access  Agent, SuperAdmin
 export const createStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const { name, email, password, officeId, agentId, phone, dateOfBirth, nationality, passportNumber }: CreateStudentRequest = req.body;
+        const {
+            studentCode,
+            name,
+            email,
+            officeId,
+            agentId,
+            phone,
+            dateOfBirth,
+            nationality,
+            passportNumber,
+            // Academic Information
+            qualification,
+            score,
+            percentage,
+            lastInstitute,
+            experience,
+            test,
+            testScore,
+            // Attestation Status
+            boardAttestation,
+            ibccAttestation,
+            hecAttestation,
+            mofaAttestation,
+            apostilleAttestation,
+            // Country Preferences
+            country1,
+            country2
+        }: CreateStudentRequest = req.body;
 
         // Check if email already exists
         const existingStudent = await Student.findOne({ email });
@@ -119,6 +144,16 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             res.status(400).json({
                 success: false,
                 message: 'Email already registered'
+            });
+            return;
+        }
+
+        // Check if student code already exists
+        const existingStudentCode = await Student.findOne({ studentCode });
+        if (existingStudentCode) {
+            res.status(400).json({
+                success: false,
+                message: 'Student code already exists'
             });
             return;
         }
@@ -184,15 +219,32 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
         }
 
         const student = await Student.create({
+            studentCode,
             name,
             email,
-            password,
             officeId: finalOfficeId,
             agentId: finalAgentId,
             phone,
             dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
             nationality,
-            passportNumber
+            passportNumber,
+            // Academic Information
+            qualification,
+            score,
+            percentage,
+            lastInstitute,
+            experience,
+            test,
+            testScore,
+            // Attestation Status
+            boardAttestation,
+            ibccAttestation,
+            hecAttestation,
+            mofaAttestation,
+            apostilleAttestation,
+            // Country Preferences
+            country1,
+            country2
         });
 
         await student.populate('officeId', 'name address location');
@@ -200,6 +252,7 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
 
         const studentResponse = {
             _id: student._id,
+            studentCode: student.studentCode,
             name: student.name,
             email: student.email,
             officeId: student.officeId,
@@ -208,6 +261,23 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             dateOfBirth: student.dateOfBirth,
             nationality: student.nationality,
             passportNumber: student.passportNumber,
+            // Academic Information
+            qualification: student.qualification,
+            score: student.score,
+            percentage: student.percentage,
+            lastInstitute: student.lastInstitute,
+            experience: student.experience,
+            test: student.test,
+            testScore: student.testScore,
+            // Attestation Status
+            boardAttestation: student.boardAttestation,
+            ibccAttestation: student.ibccAttestation,
+            hecAttestation: student.hecAttestation,
+            mofaAttestation: student.mofaAttestation,
+            apostilleAttestation: student.apostilleAttestation,
+            // Country Preferences
+            country1: student.country1,
+            country2: student.country2,
             documents: student.documents,
             status: student.status,
             createdAt: student.createdAt,
@@ -255,7 +325,33 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
 // @access  Agent, Admin
 export const updateStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const { name, email, phone, dateOfBirth, nationality, passportNumber, status } = req.body;
+        const {
+            studentCode,
+            name,
+            email,
+            phone,
+            dateOfBirth,
+            nationality,
+            passportNumber,
+            status,
+            // Academic Information
+            qualification,
+            score,
+            percentage,
+            lastInstitute,
+            experience,
+            test,
+            testScore,
+            // Attestation Status
+            boardAttestation,
+            ibccAttestation,
+            hecAttestation,
+            mofaAttestation,
+            apostilleAttestation,
+            // Country Preferences
+            country1,
+            country2
+        } = req.body;
 
         const student = await Student.findById(req.params.id);
         if (!student) {
@@ -278,7 +374,20 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
             }
         }
 
+        // Check if student code already exists (if changing student code)
+        if (studentCode && studentCode !== student.studentCode) {
+            const existingStudentCode = await Student.findOne({ studentCode });
+            if (existingStudentCode) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Student code already exists'
+                });
+                return;
+            }
+        }
+
         // Update fields
+        if (studentCode) student.studentCode = studentCode;
         if (name) student.name = name;
         if (email) student.email = email;
         if (phone !== undefined) student.phone = phone;
@@ -286,6 +395,23 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
         if (nationality) student.nationality = nationality;
         if (passportNumber) student.passportNumber = passportNumber;
         if (status) student.status = status;
+        // Academic Information
+        if (qualification) student.qualification = qualification;
+        if (score !== undefined) student.score = score;
+        if (percentage !== undefined) student.percentage = percentage;
+        if (lastInstitute) student.lastInstitute = lastInstitute;
+        if (experience) student.experience = experience;
+        if (test) student.test = test;
+        if (testScore !== undefined) student.testScore = testScore;
+        // Attestation Status
+        if (boardAttestation) student.boardAttestation = boardAttestation;
+        if (ibccAttestation) student.ibccAttestation = ibccAttestation;
+        if (hecAttestation) student.hecAttestation = hecAttestation;
+        if (mofaAttestation) student.mofaAttestation = mofaAttestation;
+        if (apostilleAttestation) student.apostilleAttestation = apostilleAttestation;
+        // Country Preferences
+        if (country1) student.country1 = country1;
+        if (country2) student.country2 = country2;
 
         await student.save();
         await student.populate('officeId', 'name address location');
@@ -293,6 +419,7 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
 
         const studentResponse = {
             _id: student._id,
+            studentCode: student.studentCode,
             name: student.name,
             email: student.email,
             officeId: student.officeId,
@@ -301,6 +428,23 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
             dateOfBirth: student.dateOfBirth,
             nationality: student.nationality,
             passportNumber: student.passportNumber,
+            // Academic Information
+            qualification: student.qualification,
+            score: student.score,
+            percentage: student.percentage,
+            lastInstitute: student.lastInstitute,
+            experience: student.experience,
+            test: student.test,
+            testScore: student.testScore,
+            // Attestation Status
+            boardAttestation: student.boardAttestation,
+            ibccAttestation: student.ibccAttestation,
+            hecAttestation: student.hecAttestation,
+            mofaAttestation: student.mofaAttestation,
+            apostilleAttestation: student.apostilleAttestation,
+            // Country Preferences
+            country1: student.country1,
+            country2: student.country2,
             documents: student.documents,
             status: student.status,
             createdAt: student.createdAt,
