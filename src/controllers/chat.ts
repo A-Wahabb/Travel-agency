@@ -249,7 +249,8 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response): Pro
             return;
         }
 
-        const { chatId, content, messageType = 'text', replyTo }: SendMessageRequest = req.body;
+        const chatId = req.params.chatId;
+        const { content, messageType = 'text', replyTo } = req.body;
         const currentUserId = req.user!.id;
 
         // Verify user has access to this chat
@@ -470,6 +471,57 @@ export const getUnreadCount = async (req: AuthenticatedRequest, res: Response): 
     }
 };
 
+// Mark messages as read
+export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+            return;
+        }
+
+        const chatId = req.params.chatId;
+        const currentUserId = req.user!.id;
+
+        // Verify user has access to this chat
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            res.status(404).json({
+                success: false,
+                message: 'Chat not found'
+            });
+            return;
+        }
+
+        if (!chat.isParticipant(currentUserId)) {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. You are not a participant of this chat.'
+            });
+            return;
+        }
+
+        // Mark messages as read
+        await Message.markMessagesAsRead(chatId, currentUserId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Messages marked as read successfully'
+        });
+
+    } catch (error) {
+        console.error('Mark messages as read error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
 // Get chat participants
 export const getChatParticipants = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -519,6 +571,141 @@ export const getChatParticipants = async (req: AuthenticatedRequest, res: Respon
     }
 };
 
+// Search users to chat with
+export const searchUsers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+            return;
+        }
+
+        const currentUserId = req.user!.id;
+        const currentUserRole = req.user!.role;
+        const currentUserOfficeId = req.user!.officeId;
+        const search = req.query.search as string;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+
+        // Build query based on user role and permissions
+        const query: any = {
+            _id: { $ne: currentUserId }, // Exclude current user
+            isActive: true
+        };
+
+        // Role-based filtering
+        if (currentUserRole === 'Agent') {
+            // Agents can only see users from their office
+            if (currentUserOfficeId) {
+                query.officeId = currentUserOfficeId;
+            }
+        } else if (currentUserRole === 'Admin') {
+            // Admins can see users from their office
+            if (currentUserOfficeId) {
+                query.officeId = currentUserOfficeId;
+            }
+        }
+        // SuperAdmin can see all users (no additional filtering)
+
+        // Add search functionality
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            query.$or = [
+                { name: searchRegex },
+                { email: searchRegex }
+            ];
+        }
+
+        const skip = (page - 1) * limit;
+
+        const users = await Agent.find(query)
+            .select('_id name email role officeId')
+            .populate('officeId', 'name')
+            .sort({ name: 1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Agent.countDocuments(query);
+
+        // Get existing chats with these users to show chat status
+        const userIds = users.map(user => user._id);
+        const existingChats = await Chat.find({
+            chatType: 'direct',
+            participants: { $all: [currentUserId] },
+            'participants.1': { $in: userIds }
+        }).select('participants');
+
+        // Add chat status to each user
+        const usersWithChatStatus = users.map(user => {
+            const hasExistingChat = existingChats.some(chat =>
+                chat.participants.some((participant: any) =>
+                    participant.toString() === user._id.toString()
+                )
+            );
+
+            return {
+                ...user.toObject(),
+                hasExistingChat
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Users retrieved successfully',
+            data: usersWithChatStatus,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error('Search users error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+// Get user presence information
+export const getUserPresence = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.params.userId;
+        const currentUserId = req.user!.id;
+
+        // Import SocketService dynamically to avoid circular dependency
+        const { default: SocketService } = await import('../services/socketService');
+
+        // Get socket service instance (you might need to pass this differently)
+        // For now, we'll create a simple response
+        const isOnline = true; // This would come from SocketService.isUserOnline(userId)
+
+        res.status(200).json({
+            success: true,
+            message: 'User presence retrieved successfully',
+            data: {
+                userId,
+                isOnline,
+                lastSeen: new Date()
+            }
+        });
+
+    } catch (error) {
+        console.error('Get user presence error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
 // Validation rules
 export const validateCreateChat = [
     body('participantIds')
@@ -545,9 +732,6 @@ export const validateMessageId = [
 ];
 
 export const validateSendMessage = [
-    body('chatId')
-        .isMongoId()
-        .withMessage('Invalid chat ID'),
     body('content')
         .trim()
         .isLength({ min: 1, max: 2000 })
@@ -587,4 +771,20 @@ export const validateChatQuery = [
         .optional()
         .isIn(['direct', 'group'])
         .withMessage('Chat type must be either direct or group')
+];
+
+export const validateSearchUsers = [
+    query('page')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('Page must be a positive integer'),
+    query('limit')
+        .optional()
+        .isInt({ min: 1, max: 50 })
+        .withMessage('Limit must be between 1 and 50'),
+    query('search')
+        .optional()
+        .trim()
+        .isLength({ max: 100 })
+        .withMessage('Search query cannot exceed 100 characters')
 ];

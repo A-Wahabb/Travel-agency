@@ -7,13 +7,17 @@ import {
     editMessage,
     deleteMessage,
     getUnreadCount,
+    markMessagesAsRead,
     getChatParticipants,
+    searchUsers,
+    getUserPresence,
     validateCreateChat,
     validateChatId,
     validateMessageId,
     validateSendMessage,
     validateEditMessage,
-    validateChatQuery
+    validateChatQuery,
+    validateSearchUsers
 } from '../controllers/chat';
 import { authenticateToken, authorizeChatAccess } from '../middlewares/auth';
 
@@ -27,6 +31,8 @@ router.use(authorizeChatAccess);
 router.post('/', validateCreateChat, createChat);
 router.get('/', validateChatQuery, getUserChats);
 router.get('/unread-count', getUnreadCount);
+router.get('/search-users', validateSearchUsers, searchUsers);
+router.get('/user-presence/:userId', validateChatId, getUserPresence);
 
 // Specific chat routes
 router.get('/:chatId', validateChatId, getChatMessages);
@@ -34,6 +40,7 @@ router.get('/:chatId/participants', validateChatId, getChatParticipants);
 
 // Message routes
 router.post('/:chatId/messages', validateChatId, validateSendMessage, sendMessage);
+router.post('/:chatId/messages/read', validateChatId, markMessagesAsRead);
 router.put('/messages/:messageId', validateMessageId, validateEditMessage, editMessage);
 router.delete('/messages/:messageId', validateMessageId, deleteMessage);
 

@@ -21,6 +21,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
 export class SocketService {
     private io: SocketIOServer;
     private connectedUsers: Map<string, string> = new Map(); // userId -> socketId
+    private userPresence: Map<string, { status: 'online' | 'away' | 'offline', lastSeen: Date }> = new Map();
 
     constructor(server: HTTPServer) {
         this.io = new SocketIOServer(server, {
@@ -75,6 +76,7 @@ export class SocketService {
 
             // Store user connection
             this.connectedUsers.set(user.userId, socket.id);
+            this.userPresence.set(user.userId, { status: 'online', lastSeen: new Date() });
 
             // Join user to their personal room for notifications
             socket.join(`user:${user.userId}`);
@@ -84,12 +86,15 @@ export class SocketService {
                 socket.join(`office:${user.officeId}`);
             }
 
+            // Notify other users about online status
+            this.broadcastUserPresence(user.userId, 'online');
+
             // Handle joining chat room
             socket.on('join_chat', async (chatId: string) => {
                 try {
                     // Verify user has access to this chat
-                    const chat = await Chat.findById(chatId);
-                    if (!chat || !chat.isParticipant(user.userId)) {
+                    const chatRoom = await Chat.findById(chatId);
+                    if (!chatRoom || !chatRoom.isParticipant(user.userId)) {
                         socket.emit('error', { message: 'Access denied to this chat' });
                         return;
                     }
@@ -135,8 +140,8 @@ export class SocketService {
                     const { chatId, content, messageType = 'text', replyTo } = data;
 
                     // Verify user has access to this chat
-                    const chat = await Chat.findById(chatId);
-                    if (!chat || !chat.isParticipant(user.userId)) {
+                    const chatRoom = await Chat.findById(chatId);
+                    if (!chatRoom || !chatRoom.isParticipant(user.userId)) {
                         socket.emit('error', { message: 'Access denied to this chat' });
                         return;
                     }
@@ -178,6 +183,27 @@ export class SocketService {
                         message: savedMessage,
                         chatId
                     });
+
+                    // Send notification to offline participants
+                    const chatWithParticipants = await Chat.findById(chatId).populate('participants');
+                    if (chatWithParticipants) {
+                        chatWithParticipants.participants.forEach((participant: any) => {
+                            if (participant._id.toString() !== user.userId) {
+                                const isOnline = this.connectedUsers.has(participant._id.toString());
+                                if (!isOnline) {
+                                    // Store notification for when user comes online
+                                    this.sendNotificationToUser(participant._id.toString(), {
+                                        type: 'new_message',
+                                        title: 'New Message',
+                                        message: `${(savedMessage.senderId as any).name}: ${savedMessage.content}`,
+                                        chatId: chatId,
+                                        senderId: user.userId,
+                                        timestamp: new Date()
+                                    });
+                                }
+                            }
+                        });
+                    }
 
                     // Send success response to sender
                     socket.emit('message_sent', {
@@ -264,6 +290,10 @@ export class SocketService {
             socket.on('disconnect', () => {
                 console.log(`User ${user.userId} disconnected`);
                 this.connectedUsers.delete(user.userId);
+                this.userPresence.set(user.userId, { status: 'offline', lastSeen: new Date() });
+
+                // Notify other users about offline status
+                this.broadcastUserPresence(user.userId, 'offline');
             });
         });
     }
@@ -294,6 +324,48 @@ export class SocketService {
     // Method to check if user is online
     public isUserOnline(userId: string): boolean {
         return this.connectedUsers.has(userId);
+    }
+
+    // Method to get user presence
+    public getUserPresence(userId: string): { status: 'online' | 'away' | 'offline', lastSeen: Date } | null {
+        return this.userPresence.get(userId) || null;
+    }
+
+    // Method to broadcast user presence
+    private broadcastUserPresence(userId: string, status: 'online' | 'away' | 'offline'): void {
+        this.io.emit('user_presence', {
+            userId,
+            status,
+            timestamp: new Date()
+        });
+    }
+
+    // Method to get all online users
+    public getOnlineUsers(): string[] {
+        return Array.from(this.connectedUsers.keys());
+    }
+
+    // Method to send enhanced notification
+    public sendEnhancedNotification(userId: string, notification: {
+        type: 'new_message' | 'system' | 'info' | 'warning' | 'error';
+        title: string;
+        message: string;
+        chatId?: string;
+        senderId?: string;
+        timestamp: Date;
+        priority?: 'low' | 'medium' | 'high';
+    }): void {
+        const socketId = this.connectedUsers.get(userId);
+        if (socketId) {
+            this.io.to(socketId).emit('enhanced_notification', notification);
+        }
+    }
+
+    // Method to send notification to multiple users
+    public sendNotificationToUsers(userIds: string[], notification: any): void {
+        userIds.forEach(userId => {
+            this.sendNotificationToUser(userId, notification);
+        });
     }
 }
 

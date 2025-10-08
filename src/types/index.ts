@@ -482,7 +482,6 @@ export interface CreateChatRequest {
 }
 
 export interface SendMessageRequest {
-    chatId: string;
     content: string;
     messageType?: 'text' | 'file' | 'image' | 'system';
     replyTo?: string;
