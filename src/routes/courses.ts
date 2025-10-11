@@ -8,7 +8,8 @@ import {
     deleteCourse,
     linkStudentToCourse,
     unlinkStudentFromCourse,
-    getCourseStudents
+    getCourseStudents,
+    exportCourses
 } from '../controllers/course';
 import {
     authenticateToken,
@@ -132,6 +133,9 @@ const updateCourseValidation = [
 // Routes
 // Get all courses (accessible by all authenticated users)
 router.get('/', authenticateToken, authorizeAgent, getCourses);
+
+// Export courses (SuperAdmin only) - must come before /:id route
+router.get('/export', authenticateToken, authorizeSuperAdmin, exportCourses);
 
 // Get single course (accessible by all authenticated users)
 router.get('/:id', authenticateToken, authorizeAgent, getCourse);

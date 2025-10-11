@@ -22,7 +22,16 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
             return;
         }
 
-        const { page = '1', limit = '10', search = '', sortBy = 'createdAt', sortOrder = 'desc' }: PaginationQuery = req.query;
+        const {
+            page = '1',
+            limit = '10',
+            search = '',
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            startDate,
+            endDate,
+            dateField = 'createdAt'
+        }: PaginationQuery & { startDate?: string; endDate?: string; dateField?: string } = req.query;
 
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -41,8 +50,34 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { email: { $regex: search, $options: 'i' } },
+                { studentCode: { $regex: search, $options: 'i' } },
+                { phoneNumber: { $regex: search, $options: 'i' } },
                 { passportNumber: { $regex: search, $options: 'i' } }
             ];
+        }
+
+        // Add date filtering
+        if (startDate || endDate) {
+            const validDateField = ['createdAt', 'updatedAt'].includes(dateField) ? dateField : 'createdAt';
+            query[validDateField] = {};
+
+            if (startDate) {
+                const start = new Date(startDate);
+                if (!isNaN(start.getTime())) {
+                    // Set to start of day
+                    start.setHours(0, 0, 0, 0);
+                    query[validDateField].$gte = start;
+                }
+            }
+
+            if (endDate) {
+                const end = new Date(endDate);
+                if (!isNaN(end.getTime())) {
+                    // Set to end of day
+                    end.setHours(23, 59, 59, 999);
+                    query[validDateField].$lte = end;
+                }
+            }
         }
 
         // Build sort
@@ -80,20 +115,191 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
     }
 };
 
-// @desc    Get single student
+// @desc    Get all students by agent ID
+// @route   GET /api/students/agent/:agentId
+// @access  Agent, Admin, SuperAdmin
+export const getStudentsByAgent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const { agentId } = req.params;
+        const {
+            page = '1',
+            limit = '10',
+            search = '',
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            startDate,
+            endDate,
+            dateField = 'createdAt'
+        }: PaginationQuery & { startDate?: string; endDate?: string; dateField?: string } = req.query;
+
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Find the agent to verify they exist and get their office
+        const agent = await Agent.findById(agentId);
+        if (!agent) {
+            res.status(404).json({
+                success: false,
+                message: 'Agent not found'
+            });
+            return;
+        }
+
+        // Access control: Check if the requesting user can access this agent's students
+        if (req.user.role === 'Agent') {
+            // Agent can only access their own students or agents from the same office
+            if (req.user.id !== agentId && req.user.officeId !== agent.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. You can only view students of agents in your office'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            // Admin can only access agents from their office
+            if (req.user.officeId !== agent.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Agent does not belong to your office'
+                });
+                return;
+            }
+        }
+        // SuperAdmin can access all agents (no additional check needed)
+
+        // Build query
+        const query: any = {
+            agentId: agentId,
+            status: { $ne: 'deleted' }
+        };
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { studentCode: { $regex: search, $options: 'i' } },
+                { phoneNumber: { $regex: search, $options: 'i' } },
+                { passportNumber: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Add date filtering
+        if (startDate || endDate) {
+            const validDateField = ['createdAt', 'updatedAt'].includes(dateField) ? dateField : 'createdAt';
+            query[validDateField] = {};
+
+            if (startDate) {
+                const start = new Date(startDate);
+                if (!isNaN(start.getTime())) {
+                    // Set to start of day
+                    start.setHours(0, 0, 0, 0);
+                    query[validDateField].$gte = start;
+                }
+            }
+
+            if (endDate) {
+                const end = new Date(endDate);
+                if (!isNaN(end.getTime())) {
+                    // Set to end of day
+                    end.setHours(23, 59, 59, 999);
+                    query[validDateField].$lte = end;
+                }
+            }
+        }
+
+        // Build sort
+        const sort: any = {};
+        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+        const students = await Student.find(query)
+            .populate('officeId', 'name address location')
+            .populate('agentId', 'name email officeId')
+            .populate('courseId', 'name university country field level')
+            .sort(sort)
+            .skip(skip)
+            .limit(limitNum);
+
+        const total = await Student.countDocuments(query);
+        const totalPages = Math.ceil(total / limitNum);
+
+        res.status(200).json({
+            success: true,
+            message: 'Students retrieved successfully',
+            data: students,
+            agent: {
+                _id: agent._id,
+                name: agent.name,
+                email: agent.email,
+                officeId: agent.officeId
+            },
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages
+            }
+        });
+    } catch (error) {
+        console.error('Get students by agent error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Get single student by ID or Student Code
 // @route   GET /api/students/:id
 // @access  Agent, Admin, SuperAdmin
 export const getStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const student = await Student.findById(req.params.id)
-            .populate('officeId', 'name address location')
-            .populate('agentId', 'name email officeId')
-            .populate('courseId', 'name university country field level');
+        const { id } = req.params;
+        let student;
+
+        // Try to find by MongoDB ID first, then by student code if ID search fails
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            // Valid MongoDB ObjectId format
+            student = await Student.findById(id)
+                .populate('officeId', 'name address location')
+                .populate('agentId', 'name email officeId')
+                .populate('courseId', 'name university country field level');
+        }
+
+        // If not found by ID, try to find by student code
+        if (!student) {
+            student = await Student.findOne({ studentCode: id })
+                .populate('officeId', 'name address location')
+                .populate('agentId', 'name email officeId')
+                .populate('courseId', 'name university country field level');
+        }
+
+        if (!student) {
+            res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+            return;
+        }
+
+        // Extract agent name for easier access
+        const agentName = (student.agentId as any)?.name || null;
 
         res.status(200).json({
             success: true,
             message: 'Student retrieved successfully',
-            data: student
+            data: {
+                ...student.toObject(),
+                agentName
+            }
         });
     } catch (error) {
         console.error('Get student error:', error);
@@ -113,9 +319,10 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             studentCode,
             name,
             email,
+            countryCode,
+            phoneNumber,
             officeId,
             agentId,
-            phone,
             dateOfBirth,
             nationality,
             passportNumber,
@@ -222,9 +429,10 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
             studentCode,
             name,
             email,
+            countryCode,
+            phoneNumber,
             officeId: finalOfficeId,
             agentId: finalAgentId,
-            phone,
             dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
             nationality,
             passportNumber,
@@ -250,14 +458,19 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
         await student.populate('officeId', 'name address location');
         await student.populate('agentId', 'name email officeId');
 
+        // Extract agent name for easier access
+        const agentName = (student.agentId as any)?.name || null;
+
         const studentResponse = {
             _id: student._id,
             studentCode: student.studentCode,
             name: student.name,
             email: student.email,
+            countryCode: student.countryCode,
+            phoneNumber: student.phoneNumber,
             officeId: student.officeId,
             agentId: student.agentId,
-            phone: student.phone,
+            agentName: agentName,
             dateOfBirth: student.dateOfBirth,
             nationality: student.nationality,
             passportNumber: student.passportNumber,
@@ -322,18 +535,20 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
 
 // @desc    Update student
 // @route   PUT /api/students/:id
-// @access  Agent, Admin
+// @access  Agent, Admin, SuperAdmin
 export const updateStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const {
             studentCode,
             name,
             email,
-            phone,
+            countryCode,
+            phoneNumber,
             dateOfBirth,
             nationality,
             passportNumber,
             status,
+            agentId,
             // Academic Information
             qualification,
             score,
@@ -386,11 +601,44 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
             }
         }
 
+        // Handle agent update (SuperAdmin only)
+        if (agentId !== undefined) {
+            if (!req.user || req.user.role !== 'SuperAdmin') {
+                res.status(403).json({
+                    success: false,
+                    message: 'Only SuperAdmin can change the assigned agent'
+                });
+                return;
+            }
+
+            // Validate the new agent exists
+            const newAgent = await Agent.findById(agentId);
+            if (!newAgent) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Agent not found'
+                });
+                return;
+            }
+
+            // Validate the new agent belongs to the student's office
+            if (newAgent.officeId !== student.officeId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Agent must belong to the same office as the student'
+                });
+                return;
+            }
+
+            student.agentId = agentId;
+        }
+
         // Update fields
         if (studentCode) student.studentCode = studentCode;
         if (name) student.name = name;
         if (email) student.email = email;
-        if (phone !== undefined) student.phone = phone;
+        if (countryCode !== undefined) student.countryCode = countryCode;
+        if (phoneNumber !== undefined) student.phoneNumber = phoneNumber;
         if (dateOfBirth) student.dateOfBirth = new Date(dateOfBirth);
         if (nationality) student.nationality = nationality;
         if (passportNumber) student.passportNumber = passportNumber;
@@ -417,14 +665,19 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response): P
         await student.populate('officeId', 'name address location');
         await student.populate('agentId', 'name email officeId');
 
+        // Extract agent name for easier access
+        const agentName = (student.agentId as any)?.name || null;
+
         const studentResponse = {
             _id: student._id,
             studentCode: student.studentCode,
             name: student.name,
             email: student.email,
+            countryCode: student.countryCode,
+            phoneNumber: student.phoneNumber,
             officeId: student.officeId,
             agentId: student.agentId,
-            phone: student.phone,
+            agentName: agentName,
             dateOfBirth: student.dateOfBirth,
             nationality: student.nationality,
             passportNumber: student.passportNumber,
@@ -689,14 +942,23 @@ export const updateStudentOptions = async (req: AuthenticatedRequest, res: Respo
 
         // Update student options
         if (studentOptions.clients !== undefined) student.studentOptions.clients = studentOptions.clients;
+        if (studentOptions.clientsComment !== undefined) student.studentOptions.clientsComment = studentOptions.clientsComment;
         if (studentOptions.initialPayment !== undefined) student.studentOptions.initialPayment = studentOptions.initialPayment;
+        if (studentOptions.initialPaymentComment !== undefined) student.studentOptions.initialPaymentComment = studentOptions.initialPaymentComment;
         if (studentOptions.documents !== undefined) student.studentOptions.documents = studentOptions.documents;
+        if (studentOptions.documentsComment !== undefined) student.studentOptions.documentsComment = studentOptions.documentsComment;
         if (studentOptions.applications !== undefined) student.studentOptions.applications = studentOptions.applications;
+        if (studentOptions.applicationsComment !== undefined) student.studentOptions.applicationsComment = studentOptions.applicationsComment;
         if (studentOptions.offerLetterSecured !== undefined) student.studentOptions.offerLetterSecured = studentOptions.offerLetterSecured;
+        if (studentOptions.offerLetterSecuredComment !== undefined) student.studentOptions.offerLetterSecuredComment = studentOptions.offerLetterSecuredComment;
         if (studentOptions.secondPaymentDone !== undefined) student.studentOptions.secondPaymentDone = studentOptions.secondPaymentDone;
+        if (studentOptions.secondPaymentDoneComment !== undefined) student.studentOptions.secondPaymentDoneComment = studentOptions.secondPaymentDoneComment;
         if (studentOptions.visaApplication !== undefined) student.studentOptions.visaApplication = studentOptions.visaApplication;
+        if (studentOptions.visaApplicationComment !== undefined) student.studentOptions.visaApplicationComment = studentOptions.visaApplicationComment;
         if (studentOptions.visaSecured !== undefined) student.studentOptions.visaSecured = studentOptions.visaSecured;
+        if (studentOptions.visaSecuredComment !== undefined) student.studentOptions.visaSecuredComment = studentOptions.visaSecuredComment;
         if (studentOptions.finalPayment !== undefined) student.studentOptions.finalPayment = studentOptions.finalPayment;
+        if (studentOptions.finalPaymentComment !== undefined) student.studentOptions.finalPaymentComment = studentOptions.finalPaymentComment;
 
         await student.save();
         await student.populate('officeId', 'name address location');

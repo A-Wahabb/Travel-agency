@@ -64,7 +64,8 @@ export interface IStudent extends BaseDocument {
     studentCode: string;
     name: string;
     email: string;
-    phone: string;
+    countryCode: string;
+    phoneNumber: string;
     officeId: string;
     agentId: string;
     courseId?: string;
@@ -100,14 +101,23 @@ export interface IStudent extends BaseDocument {
     // Student application stages/options
     studentOptions: {
         clients: boolean;
+        clientsComment?: string;
         initialPayment: boolean;
+        initialPaymentComment?: string;
         documents: boolean;
+        documentsComment?: string;
         applications: boolean;
+        applicationsComment?: string;
         offerLetterSecured: boolean;
+        offerLetterSecuredComment?: string;
         secondPaymentDone: boolean;
+        secondPaymentDoneComment?: string;
         visaApplication: boolean;
+        visaApplicationComment?: string;
         visaSecured: boolean;
+        visaSecuredComment?: string;
         finalPayment: boolean;
+        finalPaymentComment?: string;
     };
 }
 
@@ -281,7 +291,8 @@ export interface CreateStudentRequest {
     studentCode: string;
     name: string;
     email: string;
-    phone: string;
+    countryCode: string;
+    phoneNumber: string;
     officeId?: string;
     agentId?: string;
     dateOfBirth?: string;
@@ -313,7 +324,8 @@ export interface UpdateStudentRequest {
     studentCode?: string;
     name?: string;
     email?: string;
-    phone?: string;
+    countryCode?: string;
+    phoneNumber?: string;
     dateOfBirth?: string;
     nationality?: string;
     passportNumber?: string;
@@ -341,14 +353,23 @@ export interface UpdateStudentRequest {
 
 export interface UpdateStudentOptionsRequest {
     clients?: boolean;
+    clientsComment?: string;
     initialPayment?: boolean;
+    initialPaymentComment?: string;
     documents?: boolean;
+    documentsComment?: string;
     applications?: boolean;
+    applicationsComment?: string;
     offerLetterSecured?: boolean;
+    offerLetterSecuredComment?: string;
     secondPaymentDone?: boolean;
+    secondPaymentDoneComment?: string;
     visaApplication?: boolean;
+    visaApplicationComment?: string;
     visaSecured?: boolean;
+    visaSecuredComment?: string;
     finalPayment?: boolean;
+    finalPaymentComment?: string;
 }
 
 export interface CreatePaymentRequest {

@@ -82,11 +82,17 @@ const studentSchema = new Schema<IStudentDocument>({
         trim: true,
         match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
     },
-    phone: {
+    countryCode: {
         type: String,
-        required: [true, 'phone:Phone number is required'],
+        required: [true, 'countryCode:Country code is required'],
         trim: true,
-        match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+        match: [/^\+?[1-9]\d{0,3}$/, 'Please enter a valid country code (e.g., +1, +92, +44)']
+    },
+    phoneNumber: {
+        type: String,
+        required: [true, 'phoneNumber:Phone number is required'],
+        trim: true,
+        match: [/^[0-9]{6,15}$/, 'Please enter a valid phone number (6-15 digits)']
     },
     officeId: {
         type: String,
@@ -215,37 +221,91 @@ const studentSchema = new Schema<IStudentDocument>({
             type: Boolean,
             default: false
         },
+        clientsComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
+        },
         initialPayment: {
             type: Boolean,
             default: false
+        },
+        initialPaymentComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
         },
         documents: {
             type: Boolean,
             default: false
         },
+        documentsComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
+        },
         applications: {
             type: Boolean,
             default: false
+        },
+        applicationsComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
         },
         offerLetterSecured: {
             type: Boolean,
             default: false
         },
+        offerLetterSecuredComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
+        },
         secondPaymentDone: {
             type: Boolean,
             default: false
+        },
+        secondPaymentDoneComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
         },
         visaApplication: {
             type: Boolean,
             default: false
         },
+        visaApplicationComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
+        },
         visaSecured: {
             type: Boolean,
             default: false
         },
+        visaSecuredComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
+        },
         finalPayment: {
             type: Boolean,
             default: false
+        },
+        finalPaymentComment: {
+            type: String,
+            default: '',
+            trim: true,
+            maxlength: [500, 'Comment cannot exceed 500 characters']
         }
     }
 }, {

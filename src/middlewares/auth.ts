@@ -178,7 +178,7 @@ export const authorizeStudentAccess = async (
 
         res.status(403).json({
             success: false,
-            message: 'Access denied. Insufficient permissions.'
+            message: 'Access denied. Insufficient permissions. you role is ' + req.user.role
         });
     } catch (error) {
         console.error('Student authorization error:', error);
@@ -293,7 +293,7 @@ export const authorizePaymentAccess = async (
 
         res.status(403).json({
             success: false,
-            message: 'Access denied. Insufficient permissions.'
+            message: 'Access denied. Insufficient permissions. you role is ' + req.user.role
         });
     } catch (error) {
         console.error('Payment authorization error:', error);

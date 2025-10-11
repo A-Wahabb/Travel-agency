@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { login, getProfile, updateProfile, changePassword, logout, refreshToken } from '../controllers/auth';
-import { authenticateToken } from '../middlewares/auth';
+import { login, getProfile, updateProfile, changePassword, logout, refreshToken, resetPassword } from '../controllers/auth';
+import { authenticateToken, authorizeRoles } from '../middlewares/auth';
 import validate from '../middlewares/validate';
 
 const router = express.Router();
@@ -48,12 +48,21 @@ const refreshTokenValidation = [
         .withMessage('Refresh token is required')
 ];
 
+const resetPasswordValidation = [
+    body('newPassword')
+        .isLength({ min: 6 })
+        .withMessage('New password must be at least 6 characters')
+        .notEmpty()
+        .withMessage('New password is required')
+];
+
 // Routes
 router.post('/login', loginValidation, validate, login);
 router.post('/refresh', refreshTokenValidation, validate, refreshToken);
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile', authenticateToken, updateProfileValidation, validate, updateProfile);
 router.put('/change-password', authenticateToken, changePasswordValidation, validate, changePassword);
+router.put('/reset-password/:userId', authenticateToken, authorizeRoles('SuperAdmin'), resetPasswordValidation, validate, resetPassword);
 router.post('/logout', authenticateToken, logout);
 
 export default router;

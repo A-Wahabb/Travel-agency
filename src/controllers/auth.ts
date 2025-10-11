@@ -391,3 +391,88 @@ export const logout = async (req: AuthenticatedRequest, res: Response): Promise<
         });
     }
 };
+
+// @desc    Reset user password (SuperAdmin only)
+// @route   PUT /api/auth/reset-password/:userId
+// @access  SuperAdmin
+export const resetPassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        // Check if user is SuperAdmin
+        if (req.user.role !== 'SuperAdmin') {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. Only SuperAdmin can reset passwords'
+            });
+            return;
+        }
+
+        const { userId } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword) {
+            res.status(400).json({
+                success: false,
+                message: 'New password is required'
+            });
+            return;
+        }
+
+        // Find the user whose password needs to be reset
+        const user = await Agent.findById(userId);
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+            return;
+        }
+
+        // Update password (will be hashed by the pre-save hook in Agent model)
+        user.password = newPassword;
+
+        // Clear all refresh tokens to force re-login
+        user.refreshTokens = [];
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Password reset successfully for ${user.name} (${user.email})`,
+            data: {
+                userId: user._id,
+                userName: user.name,
+                userEmail: user.email,
+                userRole: user.role
+            }
+        });
+    } catch (error: any) {
+        console.error('Reset password error:', error);
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};

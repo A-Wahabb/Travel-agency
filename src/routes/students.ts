@@ -2,6 +2,7 @@ import express from 'express';
 import { body } from 'express-validator';
 import {
     getStudents,
+    getStudentsByAgent,
     getStudent,
     createStudent,
     updateStudent,
@@ -43,11 +44,16 @@ const createStudentValidation = [
     body('email')
         .isEmail()
         .withMessage('Please enter a valid email'),
-    body('phone')
+    body('countryCode')
+        .notEmpty()
+        .withMessage('Country code is required')
+        .matches(/^\+?[1-9]\d{0,3}$/)
+        .withMessage('Please enter a valid country code (e.g., +1, +92, +44)'),
+    body('phoneNumber')
         .notEmpty()
         .withMessage('Phone number is required')
-        .matches(/^[\+]?[1-9][\d]{0,15}$/)
-        .withMessage('Please enter a valid phone number'),
+        .matches(/^[0-9]{6,15}$/)
+        .withMessage('Please enter a valid phone number (6-15 digits)'),
     body('officeId')
         .optional()
         .isMongoId()
@@ -158,10 +164,18 @@ const updateStudentValidation = [
         .optional()
         .isEmail()
         .withMessage('Please enter a valid email'),
-    body('phone')
+    body('countryCode')
         .optional()
-        .matches(/^[\+]?[1-9][\d]{0,15}$/)
-        .withMessage('Please enter a valid phone number'),
+        .matches(/^\+?[1-9]\d{0,3}$/)
+        .withMessage('Please enter a valid country code (e.g., +1, +92, +44)'),
+    body('phoneNumber')
+        .optional()
+        .matches(/^[0-9]{6,15}$/)
+        .withMessage('Please enter a valid phone number (6-15 digits)'),
+    body('agentId')
+        .optional()
+        .isMongoId()
+        .withMessage('Invalid agent ID'),
     body('dateOfBirth')
         .optional()
         .isISO8601()
@@ -257,38 +271,92 @@ const studentOptionsValidation = [
         .optional()
         .isBoolean()
         .withMessage('Clients must be a boolean value'),
+    body('clientsComment')
+        .optional()
+        .isString()
+        .withMessage('Clients comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Clients comment cannot exceed 500 characters'),
     body('initialPayment')
         .optional()
         .isBoolean()
         .withMessage('Initial payment must be a boolean value'),
+    body('initialPaymentComment')
+        .optional()
+        .isString()
+        .withMessage('Initial payment comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Initial payment comment cannot exceed 500 characters'),
     body('documents')
         .optional()
         .isBoolean()
         .withMessage('Documents must be a boolean value'),
+    body('documentsComment')
+        .optional()
+        .isString()
+        .withMessage('Documents comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Documents comment cannot exceed 500 characters'),
     body('applications')
         .optional()
         .isBoolean()
         .withMessage('Applications must be a boolean value'),
+    body('applicationsComment')
+        .optional()
+        .isString()
+        .withMessage('Applications comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Applications comment cannot exceed 500 characters'),
     body('offerLetterSecured')
         .optional()
         .isBoolean()
         .withMessage('Offer letter secured must be a boolean value'),
+    body('offerLetterSecuredComment')
+        .optional()
+        .isString()
+        .withMessage('Offer letter secured comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Offer letter secured comment cannot exceed 500 characters'),
     body('secondPaymentDone')
         .optional()
         .isBoolean()
         .withMessage('Second payment done must be a boolean value'),
+    body('secondPaymentDoneComment')
+        .optional()
+        .isString()
+        .withMessage('Second payment done comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Second payment done comment cannot exceed 500 characters'),
     body('visaApplication')
         .optional()
         .isBoolean()
         .withMessage('Visa application must be a boolean value'),
+    body('visaApplicationComment')
+        .optional()
+        .isString()
+        .withMessage('Visa application comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Visa application comment cannot exceed 500 characters'),
     body('visaSecured')
         .optional()
         .isBoolean()
         .withMessage('Visa secured must be a boolean value'),
+    body('visaSecuredComment')
+        .optional()
+        .isString()
+        .withMessage('Visa secured comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Visa secured comment cannot exceed 500 characters'),
     body('finalPayment')
         .optional()
         .isBoolean()
-        .withMessage('Final payment must be a boolean value')
+        .withMessage('Final payment must be a boolean value'),
+    body('finalPaymentComment')
+        .optional()
+        .isString()
+        .withMessage('Final payment comment must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Final payment comment cannot exceed 500 characters')
 ];
 
 const linkCourseValidation = [
@@ -300,6 +368,7 @@ const linkCourseValidation = [
 // Routes
 router.get('/', authenticateToken, authorizeAgent, getStudents);
 router.get('/options/count', authenticateToken, authorizeAgent, getStudentOptionsCount);
+router.get('/agent/:agentId', authenticateToken, authorizeAgent, getStudentsByAgent);
 router.get('/:id', authenticateToken, authorizeStudentAccess, getStudent);
 router.post('/', authenticateToken, authorizeRoles('Agent', 'SuperAdmin'), createStudentValidation, validate, createStudent);
 router.put('/:id', authenticateToken, authorizeStudentAccess, updateStudentValidation, validate, updateStudent);

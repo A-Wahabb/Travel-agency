@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Course from '../models/Course';
 import Student from '../models/Student';
 import { AuthenticatedRequest, CreateCourseRequest, UpdateCourseRequest, LinkStudentToCourseRequest, PaginationQuery } from '../types';
+import ExcelJS from 'exceljs';
 
 // @desc    Get all courses
 // @route   GET /api/courses
@@ -486,6 +487,147 @@ export const getCourseStudents = async (req: AuthenticatedRequest, res: Response
         res.status(500).json({
             success: false,
             message: 'Server error'
+        });
+    }
+};
+
+// @desc    Export all courses (JSON or Excel)
+// @route   GET /api/courses/export?format=json|excel
+// @access  SuperAdmin
+export const exportCourses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        // Check if user is SuperAdmin
+        if (req.user.role !== 'SuperAdmin') {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. Only SuperAdmin can export courses'
+            });
+            return;
+        }
+
+        const { format = 'json' } = req.query;
+
+        // Get all courses (both active and inactive)
+        const courses = await Course.find({})
+            .populate('createdBy', 'name email')
+            .sort({ createdAt: -1 });
+
+        if (courses.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'No courses found'
+            });
+            return;
+        }
+
+        // Format courses data for export
+        const coursesData = courses.map(course => ({
+            'Course ID': course._id.toString(),
+            'Course Name': course.name,
+            'University': course.university,
+            'Department': course.department,
+            'Country': course.country,
+            'City': course.city,
+            'Intake': course.intake,
+            'Is Private': course.isPrivate,
+            'Type': course.type,
+            'Fee': course.fee,
+            'Time Period': course.timePeriod,
+            'Percentage Requirement': course.percentageRequirement,
+            'CGPA Requirement': course.cgpaRequirement,
+            'Language Test': course.languageTest,
+            'Min Bands': course.minBands,
+            'Is Active': course.isActive ? 'Yes' : 'No',
+            'Student Count': course.studentCount || 0,
+            'Created By': (course.createdBy as any)?.name || 'N/A',
+            'Created At': course.createdAt.toISOString(),
+            'Updated At': course.updatedAt.toISOString()
+        }));
+
+        if (format === 'excel') {
+            // Create Excel workbook
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Courses');
+
+            // Define columns
+            worksheet.columns = [
+                { header: 'Course ID', key: 'Course ID', width: 30 },
+                { header: 'Course Name', key: 'Course Name', width: 40 },
+                { header: 'University', key: 'University', width: 40 },
+                { header: 'Department', key: 'Department', width: 30 },
+                { header: 'Country', key: 'Country', width: 20 },
+                { header: 'City', key: 'City', width: 20 },
+                { header: 'Intake', key: 'Intake', width: 20 },
+                { header: 'Is Private', key: 'Is Private', width: 15 },
+                { header: 'Type', key: 'Type', width: 20 },
+                { header: 'Fee', key: 'Fee', width: 20 },
+                { header: 'Time Period', key: 'Time Period', width: 20 },
+                { header: 'Percentage Requirement', key: 'Percentage Requirement', width: 25 },
+                { header: 'CGPA Requirement', key: 'CGPA Requirement', width: 20 },
+                { header: 'Language Test', key: 'Language Test', width: 20 },
+                { header: 'Min Bands', key: 'Min Bands', width: 15 },
+                { header: 'Is Active', key: 'Is Active', width: 15 },
+                { header: 'Student Count', key: 'Student Count', width: 15 },
+                { header: 'Created By', key: 'Created By', width: 25 },
+                { header: 'Created At', key: 'Created At', width: 25 },
+                { header: 'Updated At', key: 'Updated At', width: 25 }
+            ];
+
+            // Add rows
+            coursesData.forEach(course => {
+                worksheet.addRow(course);
+            });
+
+            // Style the header row
+            worksheet.getRow(1).font = { bold: true };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF4472C4' }
+            };
+            worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+            const filename = `courses_export_${timestamp}.xlsx`;
+
+            // Set response headers
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+            // Write to response
+            await workbook.xlsx.write(res);
+            res.end();
+
+        } else {
+            // JSON format
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+            const filename = `courses_export_${timestamp}.json`;
+
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+            res.status(200).json({
+                success: true,
+                message: 'Courses exported successfully',
+                exportedAt: new Date().toISOString(),
+                totalCourses: courses.length,
+                data: coursesData
+            });
+        }
+    } catch (error) {
+        console.error('Export courses error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during export'
         });
     }
 };
