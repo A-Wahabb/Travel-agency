@@ -28,7 +28,7 @@ export const getAgents = async (req: AuthenticatedRequest, res: Response): Promi
         const skip = (pageNum - 1) * limitNum;
 
         // Build query based on role
-        const query: any = {};
+        const query: any = { isGhost: { $ne: true } }; // Exclude ghost accounts from listings
 
         // SuperAdmin can see all agents (active and inactive)
         // Admin can only see active agents in their office

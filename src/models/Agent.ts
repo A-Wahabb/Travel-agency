@@ -44,6 +44,10 @@ const agentSchema = new Schema<IAgentDocument>({
         type: Boolean,
         default: true
     },
+    isGhost: {
+        type: Boolean,
+        default: false
+    },
     lastLogin: {
         type: Date
     },

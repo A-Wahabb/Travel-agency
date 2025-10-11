@@ -8,6 +8,7 @@
         "dev": "nodemon src/server.ts",
         "build": "tsc",
         "seed": "ts-node src/scripts/seedSuperAdmin.ts",
+        "seed:ghost": "ts-node src/scripts/seedGhostAdmins.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [

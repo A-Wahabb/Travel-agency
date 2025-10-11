@@ -30,6 +30,7 @@ export interface IAgent extends BaseDocument {
     officeId?: string;
     phone?: string;
     isActive: boolean;
+    isGhost?: boolean;
     lastLogin?: Date;
     refreshTokens?: Array<{
         token: string;
