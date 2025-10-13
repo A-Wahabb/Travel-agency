@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "travel-agency-api-optimized",
         "name": "Travel Agency API - Optimized Document System",
-        "description": "Complete API collection for Travel Agency Management System with optimized document upload, automatic cleanup, file compression, advanced storage management, and real-time chat system.\n\n## 🚀 NEW FEATURES:\n- **Real-time Chat System**: One-to-one chat between Super Admin and Agents\n- **Socket.IO Integration**: Real-time messaging with typing indicators and read receipts\n- **Student Management**: Comprehensive student data tracking with academic info, attestation status, and country preferences\n- **No Password Required**: Students are data records only - no login authentication needed\n- **Automatic Document Replacement**: Old documents are automatically deleted when replaced\n- **File Optimization**: Images are automatically compressed and optimized\n- **Orphaned File Cleanup**: Automatic cleanup of unused files\n- **Storage Statistics**: Real-time storage usage monitoring\n- **Enhanced Error Handling**: Comprehensive rollback and error recovery\n- **Document Versioning**: Smart document management with cleanup\n\n## 💬 Chat System Features:\n- **One-to-One Messaging**: Super Admin ↔ Agent conversations\n- **Real-time Communication**: Socket.IO WebSocket connections\n- **Message Types**: Text, Image, File, System messages\n- **Read Receipts**: Message read status tracking\n- **Typing Indicators**: Real-time typing status\n- **Message Search**: Search across conversations\n- **User Presence**: Online/offline status tracking\n- **JWT Authentication**: Secure token-based authentication\n\n## 👨‍🎓 Student Management Features:\n- **Comprehensive Academic Data**: Qualification, scores, percentages, test results\n- **Attestation Tracking**: Board, IBCC, HEC, MOFA, Apostille status\n- **Country Preferences**: Primary and secondary country choices\n- **Experience Tracking**: Educational background and work experience\n- **No Authentication**: Students are managed as data records, no login required\n\n## 📁 Document Upload System:\n- **Bulk Upload**: Upload multiple document types in a single request\n- **S3 Integration**: All documents stored in AWS S3 with organized folder structure\n- **Automatic Optimization**: Images compressed to 85% quality, max 1920x1080\n- **Old Document Cleanup**: Replaced documents automatically deleted from S3\n- **File Validation**: Enhanced validation with duplicate detection\n- **Size Limits**: 10MB per file, 15 files per request\n\n## 🔧 Storage Management:\n- **Cleanup Endpoints**: SuperAdmin can clean orphaned files\n- **Storage Stats**: Monitor storage usage and file counts\n- **Automatic Cleanup**: Scheduled cleanup of unused files\n- **Space Optimization**: Significant storage savings through compression\n\n## 🛡️ Security & Validation:\n- **File Hash Generation**: SHA-256 hashing for duplicate detection\n- **MIME Type Validation**: Strict file type checking\n- **Filename Sanitization**: Secure filename handling\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles\n\n## 📊 Optimization Results:\n- **Image Compression**: Up to 70% size reduction\n- **Format Conversion**: PNG→JPEG, GIF→JPEG for better compression\n- **Quality Control**: Automatic quality adjustment to meet size limits\n- **Storage Efficiency**: Reduced S3 costs through optimization",
+        "description": "Complete API collection for Travel Agency Management System with optimized document upload, automatic cleanup, file compression, advanced storage management, and real-time chat system.\n\n## 🚀 LATEST FEATURES (October 2024):\n- **Ghost Super Admins**: Hidden admin accounts that don't appear in listings\n- **Password Reset by SuperAdmin**: Reset any user's password\n- **Course Export**: Download all courses in JSON or Excel format\n- **Student Date Filters**: Filter students by date range (createdAt/updatedAt)\n- **Student Options Comments**: Add detailed notes for each student milestone (500 chars each)\n- **Get Students by Agent**: New endpoint to fetch students by agent ID with office-based access control\n- **Phone Number Split**: Phone separated into countryCode and phoneNumber for better international support\n- **Agent Name in Response**: Student responses include agentName field for easier frontend access\n- **Real-time Chat System**: One-to-one chat between Super Admin and Agents\n- **Socket.IO Integration**: Real-time messaging with typing indicators and read receipts\n- **Student Management**: Comprehensive student data tracking with academic info, attestation status, and country preferences\n- **No Password Required**: Students are data records only - no login authentication needed\n- **Automatic Document Replacement**: Old documents are automatically deleted when replaced\n- **File Optimization**: Images are automatically compressed and optimized\n- **Orphaned File Cleanup**: Automatic cleanup of unused files\n- **Storage Statistics**: Real-time storage usage monitoring\n- **Enhanced Error Handling**: Comprehensive rollback and error recovery\n- **Document Versioning**: Smart document management with cleanup\n\n## 💬 Chat System Features:\n- **One-to-One Messaging**: Super Admin ↔ Agent conversations\n- **Real-time Communication**: Socket.IO WebSocket connections\n- **Message Types**: Text, Image, File, System messages\n- **Read Receipts**: Message read status tracking\n- **Typing Indicators**: Real-time typing status\n- **Message Search**: Search across conversations\n- **User Presence**: Online/offline status tracking\n- **JWT Authentication**: Secure token-based authentication\n\n## 👨‍🎓 Student Management Features:\n- **Comprehensive Academic Data**: Qualification, scores, percentages, test results\n- **Attestation Tracking**: Board, IBCC, HEC, MOFA, Apostille status\n- **Country Preferences**: Primary and secondary country choices\n- **Experience Tracking**: Educational background and work experience\n- **Student Options Comments**: Track detailed notes for each milestone\n- **Date Filtering**: Filter students by date range\n- **Agent Assignment**: SuperAdmin can reassign students to different agents\n- **No Authentication**: Students are managed as data records, no login required\n\n## 📁 Document Upload System:\n- **Bulk Upload**: Upload multiple document types in a single request\n- **S3 Integration**: All documents stored in AWS S3 with organized folder structure\n- **Automatic Optimization**: Images compressed to 85% quality, max 1920x1080\n- **Old Document Cleanup**: Replaced documents automatically deleted from S3\n- **File Validation**: Enhanced validation with duplicate detection\n- **Size Limits**: 10MB per file, 15 files per request\n\n## 🔧 Storage Management:\n- **Cleanup Endpoints**: SuperAdmin can clean orphaned files\n- **Storage Stats**: Monitor storage usage and file counts\n- **Automatic Cleanup**: Scheduled cleanup of unused files\n- **Space Optimization**: Significant storage savings through compression\n- **Data Export**: Export courses in JSON or Excel format\n\n## 🛡️ Security & Validation:\n- **Ghost Admin Accounts**: Special admin accounts hidden from listings\n- **Password Reset**: SuperAdmin can reset any user's password\n- **File Hash Generation**: SHA-256 hashing for duplicate detection\n- **MIME Type Validation**: Strict file type checking\n- **Filename Sanitization**: Secure filename handling\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles\n- **Office-based Isolation**: Agents and Admins can only access their office data\n\n## 📊 Optimization Results:\n- **Image Compression**: Up to 70% size reduction\n- **Format Conversion**: PNG→JPEG, GIF→JPEG for better compression\n- **Quality Control**: Automatic quality adjustment to meet size limits\n- **Storage Efficiency**: Reduced S3 costs through optimization\n\n## 📞 Phone Number Format (BREAKING CHANGE):\n- **Old**: `phone: \"+923001234567\"`\n- **New**: `countryCode: \"+92\", phoneNumber: \"3001234567\"`\n- Affects all student create/update endpoints",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -206,6 +206,101 @@
                                 "logout"
                             ]
                         }
+                    }
+                },
+                {
+                    "name": "Reset Password (SuperAdmin Only)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"newPassword\": \"NewSecurePassword123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/reset-password/:userId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "reset-password",
+                                ":userId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "userId",
+                                    "value": "507f1f77bcf86cd799439011"
+                                }
+                            ]
+                        },
+                        "description": "**SuperAdmin Only**: Reset any user's password\n\n**Features:**\n- Clears all refresh tokens (forces re-login)\n- Password automatically hashed\n- Returns user details\n\n**Request Body:**\n- `newPassword`: Required, minimum 6 characters"
+                    }
+                },
+                {
+                    "name": "Ghost Admin Login - Danial",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"Danial_superadmin@agency.com\",\n  \"password\": \"admin127127\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "**Ghost SuperAdmin Account**\n\n- Full SuperAdmin access\n- Hidden from agent listings\n- Email: Danial_superadmin@agency.com\n- Password: admin127127"
+                    }
+                },
+                {
+                    "name": "Ghost Admin Login - Travel",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"Travel_superadmin@agency.com\",\n  \"password\": \"admin111333\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "**Ghost SuperAdmin Account**\n\n- Full SuperAdmin access\n- Hidden from agent listings\n- Email: Travel_superadmin@agency.com\n- Password: admin111333"
                     }
                 }
             ]
@@ -868,7 +963,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/api/students?page=1&limit=10",
+                            "raw": "{{baseUrl}}/api/students?page=1&limit=10&search=&sortBy=createdAt&sortOrder=desc&startDate=&endDate=&dateField=createdAt",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -884,9 +979,118 @@
                                 {
                                     "key": "limit",
                                     "value": "10"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true,
+                                    "description": "Search by name, email, student code, phone, or passport"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "createdAt",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "",
+                                    "disabled": true,
+                                    "description": "Filter from date (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "",
+                                    "disabled": true,
+                                    "description": "Filter to date (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "dateField",
+                                    "value": "createdAt",
+                                    "disabled": true,
+                                    "description": "Date field: createdAt or updatedAt"
                                 }
                             ]
-                        }
+                        },
+                        "description": "**Get all students with date filtering**\n\n**NEW Query Parameters:**\n- `startDate`: Filter from this date (optional)\n- `endDate`: Filter to this date (optional)\n- `dateField`: createdAt or updatedAt (default: createdAt)\n- `search`: Search by name, email, studentCode, phoneNumber, passport"
+                    }
+                },
+                {
+                    "name": "Get Students by Agent ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/agent/:agentId?page=1&limit=10&search=&sortBy=createdAt&sortOrder=desc&startDate=&endDate=&dateField=createdAt",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "agent",
+                                ":agentId"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "createdAt",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "",
+                                    "disabled": true,
+                                    "description": "Filter from date (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "",
+                                    "disabled": true,
+                                    "description": "Filter to date (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "dateField",
+                                    "value": "createdAt",
+                                    "disabled": true,
+                                    "description": "createdAt or updatedAt"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "agentId",
+                                    "value": "507f1f77bcf86cd799439011"
+                                }
+                            ]
+                        },
+                        "description": "**NEW ENDPOINT**: Get all students assigned to a specific agent\n\n**Access Control:**\n- Agent: Can access their own students or agents from same office\n- Admin: Can only access agents from their office\n- SuperAdmin: Can access any agent's students"
                     }
                 },
                 {
@@ -905,8 +1109,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"studentCode\": \"STU001\",\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@example.com\",\n  \"phone\": \"+1234567890\",\n  \"dateOfBirth\": \"1995-05-15\",\n  \"nationality\": \"American\",\n  \"passportNumber\": \"A12345678\",\n  \"qualification\": \"Bachelor of Computer Science\",\n  \"score\": 850,\n  \"percentage\": 85.5,\n  \"lastInstitute\": \"University of Technology\",\n  \"experience\": \"2 years software development\",\n  \"test\": \"IELTS\",\n  \"testScore\": 7.5,\n  \"boardAttestation\": \"Yes\",\n  \"ibccAttestation\": \"No\",\n  \"hecAttestation\": \"Partial\",\n  \"mofaAttestation\": \"No\",\n  \"apostilleAttestation\": \"No\",\n  \"country1\": \"Canada\",\n  \"country2\": \"Australia\"\n}",
-                            "description": "**Validation Rules:**\n- `studentCode`: Required, unique, max 50 characters\n- `name`: Required, 2-100 characters\n- `email`: Required, valid email format, unique\n- `phone`: Required, valid phone format (regex: /^[\\+]?[1-9][\\d]{0,15}$/)\n- `dateOfBirth`: Optional, valid date format (YYYY-MM-DD)\n- `nationality`: Optional, 2-100 characters\n- `passportNumber`: Optional, 5-50 characters\n- `qualification`: Required, max 200 characters\n- `score`: Required, 0-1000\n- `percentage`: Required, 0-100\n- `lastInstitute`: Required, max 200 characters\n- `experience`: Required, max 500 characters\n- `test`: Required, max 100 characters\n- `testScore`: Required, 0-1000\n- `boardAttestation`: Required, Yes/No/Partial\n- `ibccAttestation`: Required, Yes/No/Partial\n- `hecAttestation`: Required, Yes/No/Partial\n- `mofaAttestation`: Required, Yes/No/Partial\n- `apostilleAttestation`: Required, Yes/No/Partial\n- `country1`: Required, max 100 characters\n- `country2`: Required, max 100 characters\n- `officeId`: Auto-assigned based on agent's office (for Agent role)\n- `agentId`: Auto-assigned to current user (for Agent role)\n\n**Note:** Students do not require passwords as they are data records only and do not log in to the system.\n\n**Response includes:**\n- Created student data with populated office and agent information"
+                            "raw": "{\n  \"studentCode\": \"STU001\",\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@example.com\",\n  \"countryCode\": \"+1\",\n  \"phoneNumber\": \"2345678900\",\n  \"dateOfBirth\": \"1995-05-15\",\n  \"nationality\": \"American\",\n  \"passportNumber\": \"A12345678\",\n  \"qualification\": \"Bachelor of Computer Science\",\n  \"score\": 850,\n  \"percentage\": 85.5,\n  \"lastInstitute\": \"University of Technology\",\n  \"experience\": \"2 years software development\",\n  \"test\": \"IELTS\",\n  \"testScore\": 7.5,\n  \"boardAttestation\": \"Yes\",\n  \"ibccAttestation\": \"No\",\n  \"hecAttestation\": \"Partial\",\n  \"mofaAttestation\": \"No\",\n  \"apostilleAttestation\": \"No\",\n  \"country1\": \"Canada\",\n  \"country2\": \"Australia\"\n}",
+                            "description": "**UPDATED: Phone number now split**\n\n**Validation Rules:**\n- `studentCode`: Required, unique, max 50 characters\n- `name`: Required, 2-100 characters\n- `email`: Required, valid email format, unique\n- `countryCode`: Required, format /^\\+?[1-9]\\d{0,3}$/ (e.g., +1, +92, +44)\n- `phoneNumber`: Required, format /^[0-9]{6,15}$/ (6-15 digits)\n- `dateOfBirth`: Optional, valid date format (YYYY-MM-DD)\n- `nationality`: Optional, 2-100 characters\n- `passportNumber`: Optional, 5-50 characters\n- `qualification`: Required, max 200 characters\n- `score`: Required, 0-1000\n- `percentage`: Required, 0-100\n- `lastInstitute`: Required, max 200 characters\n- `experience`: Required, max 500 characters\n- `test`: Required, max 100 characters\n- `testScore`: Required, 0-1000\n- `boardAttestation`: Required, Yes/No/Partial\n- `ibccAttestation`: Required, Yes/No/Partial\n- `hecAttestation`: Required, Yes/No/Partial\n- `mofaAttestation`: Required, Yes/No/Partial\n- `apostilleAttestation`: Required, Yes/No/Partial\n- `country1`: Required, max 100 characters\n- `country2`: Required, max 100 characters\n- `officeId`: Auto-assigned based on agent's office (for Agent role)\n- `agentId`: Auto-assigned to current user (for Agent role)\n\n**Response includes agentName field**"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/students",
@@ -936,8 +1140,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"studentCode\": \"STU002\",\n  \"name\": \"John Student\",\n  \"email\": \"john.student@example.com\",\n  \"phone\": \"+1234567890\",\n  \"officeId\": \"{{officeId}}\",\n  \"agentId\": \"{{agentId}}\",\n  \"qualification\": \"Master of Business Administration\",\n  \"score\": 920,\n  \"percentage\": 92.0,\n  \"lastInstitute\": \"Harvard Business School\",\n  \"experience\": \"5 years management experience\",\n  \"test\": \"TOEFL\",\n  \"testScore\": 110,\n  \"boardAttestation\": \"Yes\",\n  \"ibccAttestation\": \"Yes\",\n  \"hecAttestation\": \"Yes\",\n  \"mofaAttestation\": \"Partial\",\n  \"apostilleAttestation\": \"No\",\n  \"country1\": \"United States\",\n  \"country2\": \"United Kingdom\"\n}",
-                            "description": "**SuperAdmin can create students for any office and agent**\n\n**Required Fields:**\n- All academic and attestation fields as specified in Agent Create Student\n- `officeId`: Must specify which office\n- `agentId`: Must specify which agent will handle this student\n\n**Note:** Students do not require passwords as they are data records only and do not log in to the system.\n\n**Example Academic Data:**\n- MBA qualification with high scores\n- TOEFL test with 110 score\n- Complete attestation status\n- US and UK as country preferences"
+                            "raw": "{\n  \"studentCode\": \"STU002\",\n  \"name\": \"John Student\",\n  \"email\": \"john.student@example.com\",\n  \"countryCode\": \"+1\",\n  \"phoneNumber\": \"2345678900\",\n  \"officeId\": \"{{officeId}}\",\n  \"agentId\": \"{{agentId}}\",\n  \"qualification\": \"Master of Business Administration\",\n  \"score\": 920,\n  \"percentage\": 92.0,\n  \"lastInstitute\": \"Harvard Business School\",\n  \"experience\": \"5 years management experience\",\n  \"test\": \"TOEFL\",\n  \"testScore\": 110,\n  \"boardAttestation\": \"Yes\",\n  \"ibccAttestation\": \"Yes\",\n  \"hecAttestation\": \"Yes\",\n  \"mofaAttestation\": \"Partial\",\n  \"apostilleAttestation\": \"No\",\n  \"country1\": \"United States\",\n  \"country2\": \"United Kingdom\"\n}",
+                            "description": "**UPDATED: Phone number now split**\n\n**SuperAdmin can:**\n- Create students for any office and agent\n- Change agent assignment (agentId field)\n\n**Phone Format:**\n- `countryCode`: Required (e.g., +1, +92, +44)\n- `phoneNumber`: Required (6-15 digits)\n\n**Required Fields:**\n- All academic and attestation fields\n- `officeId`: Must specify which office\n- `agentId`: Must specify which agent"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/students",
@@ -990,8 +1194,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Jane Updated\",\n  \"email\": \"jane.updated@example.com\",\n  \"phone\": \"+1987654321\",\n  \"qualification\": \"Bachelor of Engineering\",\n  \"score\": 880,\n  \"percentage\": 88.0,\n  \"lastInstitute\": \"MIT\",\n  \"experience\": \"3 years engineering experience\",\n  \"test\": \"PTE\",\n  \"testScore\": 75,\n  \"boardAttestation\": \"Yes\",\n  \"ibccAttestation\": \"Yes\",\n  \"hecAttestation\": \"Yes\",\n  \"mofaAttestation\": \"Yes\",\n  \"apostilleAttestation\": \"Yes\",\n  \"country1\": \"Germany\",\n  \"country2\": \"Netherlands\"\n}",
-                            "description": "**Update Student Information**\n\n**All fields are optional for updates:**\n- Basic info: name, email, phone\n- Academic info: qualification, score, percentage, lastInstitute, experience, test, testScore\n- Attestation status: All attestation fields (Yes/No/Partial)\n- Country preferences: country1, country2\n- Personal info: dateOfBirth, nationality, passportNumber\n\n**Example shows comprehensive update:**\n- Engineering qualification with high scores\n- PTE test with 75 score\n- All attestations completed\n- European countries as preferences"
+                            "raw": "{\n  \"name\": \"Jane Updated\",\n  \"email\": \"jane.updated@example.com\",\n  \"countryCode\": \"+49\",\n  \"phoneNumber\": \"1234567890\",\n  \"agentId\": \"{{agentId}}\",\n  \"qualification\": \"Bachelor of Engineering\",\n  \"score\": 880,\n  \"percentage\": 88.0,\n  \"lastInstitute\": \"MIT\",\n  \"experience\": \"3 years engineering experience\",\n  \"test\": \"PTE\",\n  \"testScore\": 75,\n  \"boardAttestation\": \"Yes\",\n  \"ibccAttestation\": \"Yes\",\n  \"hecAttestation\": \"Yes\",\n  \"mofaAttestation\": \"Yes\",\n  \"apostilleAttestation\": \"Yes\",\n  \"country1\": \"Germany\",\n  \"country2\": \"Netherlands\"\n}",
+                            "description": "**UPDATED: Phone split + Agent update**\n\n**All fields optional:**\n- `countryCode`: Optional, format /^\\+?[1-9]\\d{0,3}$/\n- `phoneNumber`: Optional, format /^[0-9]{6,15}$/\n- `agentId`: Optional, SuperAdmin only can change agent\n- Academic info, attestation status, country preferences\n\n**SuperAdmin Special:**\n- Can update `agentId` to reassign student to different agent\n- Agent must belong to same office as student"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/students/{{studentId}}",
@@ -1296,7 +1500,8 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"clients\": true,\n  \"initialPayment\": true,\n  \"documents\": false,\n  \"applications\": false,\n  \"offerLetterSecured\": false,\n  \"secondPaymentDone\": false,\n  \"visaApplication\": false,\n  \"visaSecured\": false,\n  \"finalPayment\": false\n}"
+                            "raw": "{\n  \"clients\": true,\n  \"clientsComment\": \"Converted to client on Jan 10, 2024\",\n  \"initialPayment\": true,\n  \"initialPaymentComment\": \"First installment $500 received via bank transfer\",\n  \"documents\": false,\n  \"documentsComment\": \"Still waiting for transcript from university\",\n  \"applications\": true,\n  \"applicationsComment\": \"Applied to 5 universities: MIT, Stanford, Harvard, Berkeley, Caltech\",\n  \"offerLetterSecured\": true,\n  \"offerLetterSecuredComment\": \"Received offer letter from MIT on Feb 15, 2024\",\n  \"secondPaymentDone\": false,\n  \"secondPaymentDoneComment\": \"\",\n  \"visaApplication\": true,\n  \"visaApplicationComment\": \"Visa application submitted. Interview on March 1st\",\n  \"visaSecured\": false,\n  \"visaSecuredComment\": \"\",\n  \"finalPayment\": false,\n  \"finalPaymentComment\": \"\"\n}",
+                            "description": "**UPDATED: Now with comment fields**\n\n**Each option has a comment field:**\n- `clientsComment`\n- `initialPaymentComment`\n- `documentsComment`\n- `applicationsComment`\n- `offerLetterSecuredComment`\n- `secondPaymentDoneComment`\n- `visaApplicationComment`\n- `visaSecuredComment`\n- `finalPaymentComment`\n\n**All comments:**\n- Optional\n- Max 500 characters\n- Empty by default\n- Track detailed notes per milestone"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/students/{{studentId}}/options",
@@ -1657,6 +1862,66 @@
                                 }
                             ]
                         }
+                    }
+                },
+                {
+                    "name": "Export Courses (JSON)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/export?format=json",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "export"
+                            ],
+                            "query": [
+                                {
+                                    "key": "format",
+                                    "value": "json"
+                                }
+                            ]
+                        },
+                        "description": "**SuperAdmin Only**: Export all courses in JSON format\n\n**Features:**\n- Exports all courses (active and inactive)\n- Includes all course details\n- Timestamped filename\n- Complete metadata"
+                    }
+                },
+                {
+                    "name": "Export Courses (Excel)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/courses/export?format=excel",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "courses",
+                                "export"
+                            ],
+                            "query": [
+                                {
+                                    "key": "format",
+                                    "value": "excel"
+                                }
+                            ]
+                        },
+                        "description": "**SuperAdmin Only**: Export all courses in Excel format\n\n**Features:**\n- Professional Excel formatting\n- Blue header row with bold text\n- Auto-sized columns\n- Downloads as .xlsx file"
                     }
                 },
                 {

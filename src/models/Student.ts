@@ -84,13 +84,11 @@ const studentSchema = new Schema<IStudentDocument>({
     },
     countryCode: {
         type: String,
-        required: [true, 'countryCode:Country code is required'],
         trim: true,
         match: [/^\+?[1-9]\d{0,3}$/, 'Please enter a valid country code (e.g., +1, +92, +44)']
     },
     phoneNumber: {
         type: String,
-        required: [true, 'phoneNumber:Phone number is required'],
         trim: true,
         match: [/^[0-9]{6,15}$/, 'Please enter a valid phone number (6-15 digits)']
     },

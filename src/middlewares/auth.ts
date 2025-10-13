@@ -126,18 +126,19 @@ export const authorizeStudentAccess = async (
             return;
         }
 
-        // Validate ObjectId format
-        if (!mongoose.Types.ObjectId.isValid(studentId)) {
-            res.status(400).json({
-                success: false,
-                message: 'Invalid student ID format'
-            });
-            return;
-        }
-
         // Import Student model dynamically to avoid circular dependencies
         const Student = (await import('../models/Student')).default;
-        const student = await Student.findById(studentId);
+        let student;
+
+        // Try to find by MongoDB ObjectId first, then by student code
+        if (mongoose.Types.ObjectId.isValid(studentId)) {
+            student = await Student.findById(studentId);
+        }
+
+        // If not found by ObjectId, try to find by student code
+        if (!student) {
+            student = await Student.findOne({ studentCode: studentId });
+        }
 
         if (!student) {
             res.status(404).json({
