@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "travel-agency-api-optimized",
         "name": "Travel Agency API - Optimized Document System",
-        "description": "Complete API collection for Travel Agency Management System with optimized document upload, automatic cleanup, file compression, advanced storage management, and real-time chat system.\n\n## 🚀 LATEST FEATURES (October 2024):\n- **Ghost Super Admins**: Hidden admin accounts that don't appear in listings\n- **Password Reset by SuperAdmin**: Reset any user's password\n- **Course Export**: Download all courses in JSON or Excel format\n- **Student Date Filters**: Filter students by date range (createdAt/updatedAt)\n- **Student Options Comments**: Add detailed notes for each student milestone (500 chars each)\n- **Get Students by Agent**: New endpoint to fetch students by agent ID with office-based access control\n- **Phone Number Split**: Phone separated into countryCode and phoneNumber for better international support\n- **Agent Name in Response**: Student responses include agentName field for easier frontend access\n- **Real-time Chat System**: One-to-one chat between Super Admin and Agents\n- **Socket.IO Integration**: Real-time messaging with typing indicators and read receipts\n- **Student Management**: Comprehensive student data tracking with academic info, attestation status, and country preferences\n- **No Password Required**: Students are data records only - no login authentication needed\n- **Automatic Document Replacement**: Old documents are automatically deleted when replaced\n- **File Optimization**: Images are automatically compressed and optimized\n- **Orphaned File Cleanup**: Automatic cleanup of unused files\n- **Storage Statistics**: Real-time storage usage monitoring\n- **Enhanced Error Handling**: Comprehensive rollback and error recovery\n- **Document Versioning**: Smart document management with cleanup\n\n## 💬 Chat System Features:\n- **One-to-One Messaging**: Super Admin ↔ Agent conversations\n- **Real-time Communication**: Socket.IO WebSocket connections\n- **Message Types**: Text, Image, File, System messages\n- **Read Receipts**: Message read status tracking\n- **Typing Indicators**: Real-time typing status\n- **Message Search**: Search across conversations\n- **User Presence**: Online/offline status tracking\n- **JWT Authentication**: Secure token-based authentication\n\n## 👨‍🎓 Student Management Features:\n- **Comprehensive Academic Data**: Qualification, scores, percentages, test results\n- **Attestation Tracking**: Board, IBCC, HEC, MOFA, Apostille status\n- **Country Preferences**: Primary and secondary country choices\n- **Experience Tracking**: Educational background and work experience\n- **Student Options Comments**: Track detailed notes for each milestone\n- **Date Filtering**: Filter students by date range\n- **Agent Assignment**: SuperAdmin can reassign students to different agents\n- **No Authentication**: Students are managed as data records, no login required\n\n## 📁 Document Upload System:\n- **Bulk Upload**: Upload multiple document types in a single request\n- **S3 Integration**: All documents stored in AWS S3 with organized folder structure\n- **Automatic Optimization**: Images compressed to 85% quality, max 1920x1080\n- **Old Document Cleanup**: Replaced documents automatically deleted from S3\n- **File Validation**: Enhanced validation with duplicate detection\n- **Size Limits**: 10MB per file, 15 files per request\n\n## 🔧 Storage Management:\n- **Cleanup Endpoints**: SuperAdmin can clean orphaned files\n- **Storage Stats**: Monitor storage usage and file counts\n- **Automatic Cleanup**: Scheduled cleanup of unused files\n- **Space Optimization**: Significant storage savings through compression\n- **Data Export**: Export courses in JSON or Excel format\n\n## 🛡️ Security & Validation:\n- **Ghost Admin Accounts**: Special admin accounts hidden from listings\n- **Password Reset**: SuperAdmin can reset any user's password\n- **File Hash Generation**: SHA-256 hashing for duplicate detection\n- **MIME Type Validation**: Strict file type checking\n- **Filename Sanitization**: Secure filename handling\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles\n- **Office-based Isolation**: Agents and Admins can only access their office data\n\n## 📊 Optimization Results:\n- **Image Compression**: Up to 70% size reduction\n- **Format Conversion**: PNG→JPEG, GIF→JPEG for better compression\n- **Quality Control**: Automatic quality adjustment to meet size limits\n- **Storage Efficiency**: Reduced S3 costs through optimization\n\n## 📞 Phone Number Format (BREAKING CHANGE):\n- **Old**: `phone: \"+923001234567\"`\n- **New**: `countryCode: \"+92\", phoneNumber: \"3001234567\"`\n- Affects all student create/update endpoints",
+        "description": "Complete API collection for Travel Agency Management System with optimized document upload, automatic cleanup, file compression, advanced storage management, and real-time chat system.\n\n## 🚀 LATEST FEATURES (October 2024):\n- **Ghost Super Admins**: Hidden admin accounts that don't appear in listings\n- **Password Reset by SuperAdmin**: Reset any user's password\n- **Course Export**: Download all courses in JSON or Excel format\n- **Student Date Filters**: Filter students by date range (createdAt/updatedAt)\n- **Student Options Comments**: Add detailed notes for each student milestone (500 chars each)\n- **Get Students by Agent**: New endpoint to fetch students by agent ID with office-based access control\n- **Phone Number Split**: Phone separated into countryCode and phoneNumber for better international support\n- **Agent Name in Response**: Student responses include agentName field for easier frontend access\n- **Real-time Chat System**: One-to-one chat between Super Admin and Agents\n- **Socket.IO Integration**: Real-time messaging with typing indicators and read receipts\n- **Student Management**: Comprehensive student data tracking with academic info, attestation status, and country preferences\n- **No Password Required**: Students are data records only - no login authentication needed\n- **Automatic Document Replacement**: Old documents are automatically deleted when replaced\n- **File Optimization**: Images are automatically compressed and optimized\n- **Orphaned File Cleanup**: Automatic cleanup of unused files\n- **Storage Statistics**: Real-time storage usage monitoring\n- **Enhanced Error Handling**: Comprehensive rollback and error recovery\n- **Document Versioning**: Smart document management with cleanup\n\n## 💬 Chat System Features:\n- **One-to-One Messaging**: Super Admin ↔ Agent conversations\n- **Real-time Communication**: Socket.IO WebSocket connections\n- **Message Types**: Text, Image, File, System messages\n- **Read Receipts**: Message read status tracking\n- **Typing Indicators**: Real-time typing status\n- **Message Search**: Search across conversations\n- **User Presence**: Online/offline status tracking\n- **JWT Authentication**: Secure token-based authentication\n\n## 👨‍🎓 Student Management Features:\n- **Comprehensive Academic Data**: Qualification, scores, percentages, test results\n- **Attestation Tracking**: Board, IBCC, HEC, MOFA, Apostille status\n- **Country Preferences**: Primary and secondary country choices\n- **Experience Tracking**: Educational background and work experience\n- **Student Options Comments**: Track detailed notes for each milestone\n- **Date Filtering**: Filter students by date range\n- **Agent Assignment**: SuperAdmin can reassign students to different agents\n- **No Authentication**: Students are managed as data records, no login required\n\n## 📁 Document Upload System:\n- **Bulk Upload**: Upload multiple document types in a single request\n- **S3 Integration**: All documents stored in AWS S3 with organized folder structure\n- **Automatic Optimization**: Images compressed to 85% quality, max 1920x1080\n- **Old Document Cleanup**: Replaced documents automatically deleted from S3\n- **File Validation**: Enhanced validation with duplicate detection\n- **Size Limits**: 10MB per file, 15 files per request\n\n## 🔧 Storage Management:\n- **Cleanup Endpoints**: SuperAdmin can clean orphaned files\n- **Storage Stats**: Monitor storage usage and file counts\n- **Automatic Cleanup**: Scheduled cleanup of unused files\n- **Space Optimization**: Significant storage savings through compression\n- **Data Export**: Export courses in JSON or Excel format\n\n## 🛡️ Security & Validation:\n- **Ghost Admin Accounts**: Special admin accounts hidden from listings\n- **Password Reset**: SuperAdmin can reset any user's password\n- **File Hash Generation**: SHA-256 hashing for duplicate detection\n- **MIME Type Validation**: Strict file type checking\n- **Filename Sanitization**: Secure filename handling\n- **Role-based Access**: SuperAdmin, Admin, and Agent roles\n- **Office-based Isolation**: Agents and Admins can only access their office data\n\n## 📊 Optimization Results:\n- **Image Compression**: Up to 70% size reduction\n- **Format Conversion**: PNG→JPEG, GIF→JPEG for better compression\n- **Quality Control**: Automatic quality adjustment to meet size limits\n- **Storage Efficiency**: Reduced S3 costs through optimization\n\n## 📞 Phone Number Format (BREAKING CHANGE):\n- **Old**: `phone: \"+923001234567\"`\n- **New**: `countryCode: \"+92\", phoneNumber: \"3001234567\"`\n- Affects all student create/update endpoints\n\n## 🎓 Application System Features:\n- **Student-Course Linking**: Students can apply to multiple courses through applications\n- **Application Management**: Create, update, delete applications with status tracking\n- **Comments System**: Add comments to applications with timestamps and author names\n- **Search & Filtering**: Search applications by student, course, notes, and comments\n- **Status Tracking**: Track application progress (pending, submitted, under_review, accepted, rejected, waitlisted)\n- **Priority Levels**: Set priority levels (low, medium, high, urgent)\n- **Role-based Access**: Agents see their students, Admins see office students, SuperAdmins see all\n- **Statistics Dashboard**: Get application counts and status distributions\n- **Unique Constraints**: Prevents duplicate applications (same student + course)\n- **Application Numbers**: Auto-generated unique numbers (format: XXXXXX/YY-YY, e.g., 352546/25-26)\n\n## 📋 Application API Endpoints:\n- **GET /api/applications** - Get all applications with filtering\n- **GET /api/applications/:id** - Get single application\n- **POST /api/applications** - Create new application\n- **PUT /api/applications/:id** - Update application\n- **DELETE /api/applications/:id** - Delete application\n- **POST /api/applications/:id/comments** - Add comment to application\n- **GET /api/applications/search** - Search applications\n- **GET /api/applications/student/:studentId** - Get student's applications\n- **GET /api/applications/course/:courseId** - Get course applications\n- **GET /api/applications/stats** - Get application statistics",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -1017,6 +1017,59 @@
                             ]
                         },
                         "description": "**Get all students with date filtering**\n\n**NEW Query Parameters:**\n- `startDate`: Filter from this date (optional)\n- `endDate`: Filter to this date (optional)\n- `dateField`: createdAt or updatedAt (default: createdAt)\n- `search`: Search by name, email, studentCode, phoneNumber, passport"
+                    }
+                },
+                {
+                    "name": "Search Students",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/students/search?q=John&page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "students",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "John",
+                                    "description": "Search term (searches name, studentCode, phoneNumber)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Results per page"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "createdAt",
+                                    "disabled": true,
+                                    "description": "Field to sort by"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "disabled": true,
+                                    "description": "Sort order (asc/desc)"
+                                }
+                            ]
+                        },
+                        "description": "**Search Students**\n\nSearch for students by name, student code, or phone number.\n\n**Query Parameters:**\n- `q`: Search term (required) - searches across:\n  - Student name (case-insensitive)\n  - Student code\n  - Phone number\n- `page`: Page number (default: 1)\n- `limit`: Results per page (default: 10)\n- `sortBy`: Field to sort by (default: createdAt)\n- `sortOrder`: Sort order - asc or desc (default: desc)\n\n**Access Control:**\n- Agent: Search only their own students\n- Admin: Search students in their office\n- SuperAdmin: Search all students\n\n**Examples:**\n- Search by name: `?q=John`\n- Search by student code: `?q=A0810252238`\n- Search by phone: `?q=1234567890`"
                     }
                 },
                 {
@@ -2739,6 +2792,419 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "Applications",
+            "item": [
+                {
+                    "name": "Get All Applications",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications?page=1&limit=10&search=&sortBy=applicationDate&sortOrder=desc&status=&priority=&startDate=&endDate=&dateField=applicationDate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number for pagination"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Number of applications per page"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "description": "Search term for applications"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "applicationDate",
+                                    "description": "Field to sort by"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "description": "Sort order (asc/desc)"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "description": "Filter by status (pending, submitted, under_review, accepted, rejected, waitlisted)"
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "description": "Filter by priority (low, medium, high, urgent)"
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "",
+                                    "description": "Start date for filtering"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "",
+                                    "description": "End date for filtering"
+                                },
+                                {
+                                    "key": "dateField",
+                                    "value": "applicationDate",
+                                    "description": "Date field to filter by"
+                                }
+                            ]
+                        },
+                        "description": "**Access Control:**\n- **Agent**: Can only see applications for their own students\n- **Admin**: Can see applications for students in their office\n- **SuperAdmin**: Can see all applications\n\n**Features:**\n- Pagination support\n- Search across student name, course name, notes, comments\n- Filter by status, priority, date ranges\n- Sort by various fields"
+                    }
+                },
+                {
+                    "name": "Get Application by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/{{applicationId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "{{applicationId}}"
+                            ]
+                        },
+                        "description": "**Access Control:**\n- **Agent**: Can only access applications for their own students\n- **Admin**: Can access applications for students in their office\n- **SuperAdmin**: Can access all applications\n\n**Response includes:**\n- Application details with populated student and course information\n- Comments with author details\n- Documents and metadata"
+                    }
+                },
+                {
+                    "name": "Create Application",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"courseId\": \"{{courseId}}\",\n  \"priority\": \"medium\",\n  \"notes\": \"Student is very interested in this program and meets all requirements.\"\n}",
+                            "description": "**Validation Rules:**\n- `studentId`: Required, must exist and user must have access\n- `courseId`: Required, must exist and be active\n- `priority`: Optional, defaults to 'medium' (low, medium, high, urgent)\n- `notes`: Optional, max 2000 characters\n\n**Access Control:**\n- **Agent**: Can only create applications for their own students\n- **Admin**: Can create applications for students in their office\n- **SuperAdmin**: Can create applications for any student\n\n**Unique Constraint:**\n- Prevents duplicate applications (same student + course combination)\n\n**Application Number:**\n- Automatically generated in format: XXXXXX/YY-YY (e.g., 352546/25-26)\n- Sequential number + academic year\n- Unique across the system"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Application",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"submitted\",\n  \"priority\": \"high\",\n  \"notes\": \"Application has been submitted to the university. Waiting for response.\",\n  \"submissionDate\": \"2024-01-15T10:30:00Z\"\n}",
+                            "description": "**Updatable Fields:**\n- `status`: pending, submitted, under_review, accepted, rejected, waitlisted\n- `priority`: low, medium, high, urgent\n- `notes`: Additional notes (max 2000 characters)\n- `submissionDate`: When application was submitted\n- `reviewDate`: When application went under review\n- `decisionDate`: When final decision was made\n\n**Access Control:**\n- **Agent**: Can only update applications for their own students\n- **Admin**: Can update applications for students in their office\n- **SuperAdmin**: Can update any application"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/{{applicationId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "{{applicationId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Application",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/{{applicationId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "{{applicationId}}"
+                            ]
+                        },
+                        "description": "**Access Control:**\n- **Agent**: Can only delete applications for their own students\n- **Admin**: Can delete applications for students in their office\n- **SuperAdmin**: Can delete any application\n\n**Note:** This performs a soft delete (sets isActive to false)"
+                    }
+                },
+                {
+                    "name": "Add Comment to Application",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"content\": \"Application submitted successfully. University has confirmed receipt and is reviewing the documents.\"\n}",
+                            "description": "**Validation Rules:**\n- `content`: Required, max 1000 characters\n\n**Features:**\n- Author name and ID automatically populated from JWT token\n- Timestamp automatically added\n- Comments are searchable\n\n**Access Control:**\n- **Agent**: Can only add comments to applications for their own students\n- **Admin**: Can add comments to applications for students in their office\n- **SuperAdmin**: Can add comments to any application"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/{{applicationId}}/comments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "{{applicationId}}",
+                                "comments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Applications",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/search?q=computer science&page=1&limit=10&sortBy=applicationDate&sortOrder=desc",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "computer science",
+                                    "description": "Search term (required)"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number for pagination"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Number of results per page"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "applicationDate",
+                                    "description": "Field to sort by"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "description": "Sort order (asc/desc)"
+                                }
+                            ]
+                        },
+                        "description": "**Search Fields:**\n- Student name, email, student code\n- Course name, university, country, city\n- Application notes\n- Comment content\n\n**Access Control:**\n- **Agent**: Can only search applications for their own students\n- **Admin**: Can search applications for students in their office\n- **SuperAdmin**: Can search all applications"
+                    }
+                },
+                {
+                    "name": "Get Applications by Student",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/student/{{studentId}}?page=1&limit=10&sortBy=applicationDate&sortOrder=desc&status=&priority=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "student",
+                                "{{studentId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number for pagination"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Number of applications per page"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "applicationDate",
+                                    "description": "Field to sort by"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "description": "Sort order (asc/desc)"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "description": "Filter by status"
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "description": "Filter by priority"
+                                }
+                            ]
+                        },
+                        "description": "**Access Control:**\n- **Agent**: Can only access applications for their own students\n- **Admin**: Can access applications for students in their office\n- **SuperAdmin**: Can access applications for any student\n\n**Response includes:**\n- All applications for the specified student\n- Student information\n- Course details for each application\n- Comments and status information"
+                    }
+                },
+                {
+                    "name": "Get Applications by Course",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/course/{{courseId}}?page=1&limit=10&sortBy=applicationDate&sortOrder=desc&status=&priority=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "course",
+                                "{{courseId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number for pagination"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Number of applications per page"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "applicationDate",
+                                    "description": "Field to sort by"
+                                },
+                                {
+                                    "key": "sortOrder",
+                                    "value": "desc",
+                                    "description": "Sort order (asc/desc)"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "description": "Filter by status"
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "description": "Filter by priority"
+                                }
+                            ]
+                        },
+                        "description": "**Access Control:**\n- **Agent**: Can only see applications for their own students applying to this course\n- **Admin**: Can see applications for students in their office applying to this course\n- **SuperAdmin**: Can see all applications for this course\n\n**Response includes:**\n- All applications for the specified course\n- Course information\n- Student details for each application\n- Comments and status information"
+                    }
+                },
+                {
+                    "name": "Get Application Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/applications/stats",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "applications",
+                                "stats"
+                            ]
+                        },
+                        "description": "**Access Control:**\n- **Agent**: Can only see statistics for their own students' applications\n- **Admin**: Can see statistics for students in their office\n- **SuperAdmin**: Can see statistics for all applications\n\n**Statistics include:**\n- Total applications count\n- Count by status (pending, submitted, under_review, accepted, rejected, waitlisted)\n- Count by priority (low, medium, high, urgent)\n- Role-based filtering applied automatically"
+                    }
+                }
+            ]
         }
     ],
     "variable": [
@@ -2801,6 +3267,10 @@
         {
             "key": "agentToken",
             "value": "your-agent-jwt-token-here"
+        },
+        {
+            "key": "applicationId",
+            "value": "your-application-id-here"
         }
     ]
 }

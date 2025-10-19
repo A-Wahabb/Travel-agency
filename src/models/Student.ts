@@ -335,5 +335,13 @@ studentSchema.virtual('totalAmount', {
     justOne: true
 });
 
+// Virtual for applications
+studentSchema.virtual('applications', {
+    ref: 'Application',
+    localField: '_id',
+    foreignField: 'studentId',
+    match: { isActive: true }
+});
+
 export default mongoose.model<IStudentDocument>('Student', studentSchema);
 
