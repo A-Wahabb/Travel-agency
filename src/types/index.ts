@@ -495,6 +495,81 @@ export interface IMessageAttachment {
     s3Url?: string;
 }
 
+// Application Comment interface
+export interface IApplicationComment {
+    content: string;
+    authorId: string;
+    authorName: string;
+    createdAt: Date;
+}
+
+// Application interface
+export interface IApplication extends BaseDocument {
+    applicationNumber: string;
+    studentId: string;
+    courseId: string;
+    status: 'pending' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'waitlisted';
+    applicationDate: Date;
+    submissionDate?: Date;
+    reviewDate?: Date;
+    decisionDate?: Date;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    notes?: string;
+    documents: IApplicationDocument[];
+    comments: IApplicationComment[];
+    createdBy: string;
+    updatedBy?: string;
+    isActive: boolean;
+    student?: IStudent;
+    course?: ICourse;
+    creator?: IAgent;
+    updater?: IAgent;
+}
+
+// Application Document interface
+export interface IApplicationDocument {
+    filename: string;
+    originalName: string;
+    path: string;
+    uploadedAt: Date;
+    documentType: 'application_form' | 'transcript' | 'recommendation' | 'essay' | 'portfolio' | 'other';
+    s3Key?: string;
+    s3Url?: string;
+    size?: number;
+    mimetype?: string;
+}
+
+// Application request interfaces
+export interface CreateApplicationRequest {
+    studentId: string;
+    courseId: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+    notes?: string;
+}
+
+export interface UpdateApplicationRequest {
+    status?: 'pending' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'waitlisted';
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+    notes?: string;
+    submissionDate?: string;
+    reviewDate?: string;
+    decisionDate?: string;
+}
+
+export interface AddApplicationCommentRequest {
+    content: string;
+}
+
+export interface ApplicationQuery extends PaginationQuery {
+    studentId?: string;
+    courseId?: string;
+    status?: string;
+    priority?: string;
+    startDate?: string;
+    endDate?: string;
+    dateField?: string;
+}
+
 // Chat request interfaces
 export interface CreateChatRequest {
     participantIds: string[];

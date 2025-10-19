@@ -1739,3 +1739,88 @@ export const getStorageStats = async (req: AuthenticatedRequest, res: Response):
     }
 };
 
+// @desc    Search students by name, student code, or phone number
+// @route   GET /api/students/search?q=searchTerm
+// @access  Agent, Admin, SuperAdmin
+export const searchStudents = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const {
+            q = '',
+            page = '1',
+            limit = '10',
+            sortBy = 'createdAt',
+            sortOrder = 'desc'
+        }: { q?: string; page?: string; limit?: string; sortBy?: string; sortOrder?: string } = req.query;
+
+        if (!q || q.trim() === '') {
+            res.status(400).json({
+                success: false,
+                message: 'Search query parameter "q" is required'
+            });
+            return;
+        }
+
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Build query based on role
+        const query: any = { status: { $ne: 'deleted' } };
+
+        if (req.user.role === 'Agent') {
+            query.agentId = req.user.id;
+        } else if (req.user.role === 'Admin') {
+            query.officeId = req.user.officeId;
+        }
+
+        // Search across name, studentCode, and phoneNumber
+        query.$or = [
+            { name: { $regex: q, $options: 'i' } },
+            { studentCode: { $regex: q, $options: 'i' } },
+            { phoneNumber: { $regex: q, $options: 'i' } }
+        ];
+
+        // Build sort
+        const sort: any = {};
+        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+        const students = await Student.find(query)
+            .populate('officeId', 'name address location')
+            .populate('agentId', 'name email officeId')
+            .populate('courseId', 'name university country field level')
+            .sort(sort)
+            .skip(skip)
+            .limit(limitNum);
+
+        const total = await Student.countDocuments(query);
+        const totalPages = Math.ceil(total / limitNum);
+
+        res.status(200).json({
+            success: true,
+            message: 'Students search completed successfully',
+            data: students,
+            searchQuery: q,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages
+            }
+        });
+    } catch (error) {
+        console.error('Search students error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+

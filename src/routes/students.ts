@@ -17,7 +17,8 @@ import {
     getStudentDocuments,
     deleteStudentDocument,
     cleanupOrphanedDocuments,
-    getStorageStats
+    getStorageStats,
+    searchStudents
 } from '../controllers/student';
 import {
     authenticateToken,
@@ -367,6 +368,7 @@ const linkCourseValidation = [
 
 // Routes
 router.get('/', authenticateToken, authorizeAgent, getStudents);
+router.get('/search', authenticateToken, authorizeAgent, searchStudents);
 router.get('/options/count', authenticateToken, authorizeAgent, getStudentOptionsCount);
 router.get('/agent/:agentId', authenticateToken, authorizeAgent, getStudentsByAgent);
 router.get('/:id', authenticateToken, authorizeStudentAccess, getStudent);
