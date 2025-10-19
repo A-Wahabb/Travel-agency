@@ -508,7 +508,6 @@ export interface IApplication extends BaseDocument {
     applicationNumber: string;
     studentId: string;
     courseId: string;
-    status: 'pending' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'waitlisted';
     applicationDate: Date;
     submissionDate?: Date;
     reviewDate?: Date;
@@ -548,7 +547,6 @@ export interface CreateApplicationRequest {
 }
 
 export interface UpdateApplicationRequest {
-    status?: 'pending' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'waitlisted';
     priority?: 'low' | 'medium' | 'high' | 'urgent';
     notes?: string;
     submissionDate?: string;
@@ -563,7 +561,6 @@ export interface AddApplicationCommentRequest {
 export interface ApplicationQuery extends PaginationQuery {
     studentId?: string;
     courseId?: string;
-    status?: string;
     priority?: string;
     startDate?: string;
     endDate?: string;

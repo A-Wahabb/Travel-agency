@@ -3,6 +3,7 @@ import Student from '../models/Student';
 import Agent from '../models/Agent';
 import Office from '../models/Office';
 import Course from '../models/Course';
+import Application from '../models/Application';
 import { AuthenticatedRequest, CreateStudentRequest, PaginationQuery, IDocument, UpdateStudentOptionsRequest, LinkStudentToCourseRequest, BulkDocumentUploadRequest, DocumentUploadResult, StudentDocumentType } from '../types';
 import { getFileInfo } from '../middlewares/upload';
 import { uploadFileToS3, uploadMultipleFilesToS3, cleanupFilesFromS3, deleteMultipleFilesFromS3, getOldDocumentKeys, getOldOtherDocsKeys, deleteFileFromS3 } from '../services/s3Service';
@@ -84,13 +85,67 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response): Pro
         const sort: any = {};
         sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-        const students = await Student.find(query)
-            .populate('officeId', 'name address location')
-            .populate('agentId', 'name email officeId')
-            .populate('courseId', 'name university country field level')
-            .sort(sort)
-            .skip(skip)
-            .limit(limitNum);
+        // Use aggregation to get students with application counts
+        const pipeline = [
+            { $match: query },
+            {
+                $lookup: {
+                    from: 'applications',
+                    let: { studentObjectId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ['$studentId', { $toString: '$$studentObjectId' }]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'applications'
+                }
+            },
+            {
+                $addFields: {
+                    applicationCount: { $size: '$applications' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'offices',
+                    localField: 'officeId',
+                    foreignField: '_id',
+                    as: 'officeId'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'agents',
+                    localField: 'agentId',
+                    foreignField: '_id',
+                    as: 'agentId'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'courses',
+                    localField: 'courseId',
+                    foreignField: '_id',
+                    as: 'courseId'
+                }
+            },
+            {
+                $addFields: {
+                    officeId: { $arrayElemAt: ['$officeId', 0] },
+                    agentId: { $arrayElemAt: ['$agentId', 0] },
+                    courseId: { $arrayElemAt: ['$courseId', 0] }
+                }
+            },
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: limitNum }
+        ];
+
+        const students = await Student.aggregate(pipeline);
 
         const total = await Student.countDocuments(query);
         const totalPages = Math.ceil(total / limitNum);
@@ -220,13 +275,67 @@ export const getStudentsByAgent = async (req: AuthenticatedRequest, res: Respons
         const sort: any = {};
         sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-        const students = await Student.find(query)
-            .populate('officeId', 'name address location')
-            .populate('agentId', 'name email officeId')
-            .populate('courseId', 'name university country field level')
-            .sort(sort)
-            .skip(skip)
-            .limit(limitNum);
+        // Use aggregation to get students with application counts
+        const pipeline = [
+            { $match: query },
+            {
+                $lookup: {
+                    from: 'applications',
+                    let: { studentObjectId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ['$studentId', { $toString: '$$studentObjectId' }]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'applications'
+                }
+            },
+            {
+                $addFields: {
+                    applicationCount: { $size: '$applications' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'offices',
+                    localField: 'officeId',
+                    foreignField: '_id',
+                    as: 'officeId'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'agents',
+                    localField: 'agentId',
+                    foreignField: '_id',
+                    as: 'agentId'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'courses',
+                    localField: 'courseId',
+                    foreignField: '_id',
+                    as: 'courseId'
+                }
+            },
+            {
+                $addFields: {
+                    officeId: { $arrayElemAt: ['$officeId', 0] },
+                    agentId: { $arrayElemAt: ['$agentId', 0] },
+                    courseId: { $arrayElemAt: ['$courseId', 0] }
+                }
+            },
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: limitNum }
+        ];
+
+        const students = await Student.aggregate(pipeline);
 
         const total = await Student.countDocuments(query);
         const totalPages = Math.ceil(total / limitNum);

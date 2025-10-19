@@ -34,7 +34,6 @@ export const getApplications = async (req: AuthenticatedRequest, res: Response):
             sortOrder = 'desc',
             studentId,
             courseId,
-            status,
             priority,
             startDate,
             endDate,
@@ -63,9 +62,6 @@ export const getApplications = async (req: AuthenticatedRequest, res: Response):
         }
         if (courseId) {
             query.courseId = courseId;
-        }
-        if (status) {
-            query.status = status;
         }
         if (priority) {
             query.priority = priority;
@@ -343,7 +339,7 @@ export const updateApplication = async (req: AuthenticatedRequest, res: Response
             return;
         }
 
-        const { status, priority, notes, submissionDate, reviewDate, decisionDate }: UpdateApplicationRequest = req.body;
+        const { priority, notes, submissionDate, reviewDate, decisionDate }: UpdateApplicationRequest = req.body;
 
         const application = await Application.findById(req.params.id);
         if (!application) {
@@ -376,7 +372,6 @@ export const updateApplication = async (req: AuthenticatedRequest, res: Response
         }
 
         // Update fields
-        if (status) application.status = status;
         if (priority) application.priority = priority;
         if (notes !== undefined) application.notes = notes;
         if (submissionDate) application.submissionDate = new Date(submissionDate);
@@ -598,7 +593,6 @@ export const getApplicationsByStudent = async (req: AuthenticatedRequest, res: R
             limit = '10',
             sortBy = 'applicationDate',
             sortOrder = 'desc',
-            status,
             priority
         }: ApplicationQuery = req.query;
 
@@ -641,9 +635,6 @@ export const getApplicationsByStudent = async (req: AuthenticatedRequest, res: R
             isActive: true
         };
 
-        if (status) {
-            query.status = status;
-        }
         if (priority) {
             query.priority = priority;
         }
@@ -710,7 +701,6 @@ export const getApplicationsByCourse = async (req: AuthenticatedRequest, res: Re
             limit = '10',
             sortBy = 'applicationDate',
             sortOrder = 'desc',
-            status,
             priority
         }: ApplicationQuery = req.query;
 
@@ -742,9 +732,6 @@ export const getApplicationsByCourse = async (req: AuthenticatedRequest, res: Re
             query['student.officeId'] = req.user.officeId;
         }
 
-        if (status) {
-            query.status = status;
-        }
         if (priority) {
             query.priority = priority;
         }
@@ -918,12 +905,6 @@ export const getApplicationStats = async (req: AuthenticatedRequest, res: Respon
                 $group: {
                     _id: null,
                     totalApplications: { $sum: 1 },
-                    pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
-                    submitted: { $sum: { $cond: [{ $eq: ['$status', 'submitted'] }, 1, 0] } },
-                    underReview: { $sum: { $cond: [{ $eq: ['$status', 'under_review'] }, 1, 0] } },
-                    accepted: { $sum: { $cond: [{ $eq: ['$status', 'accepted'] }, 1, 0] } },
-                    rejected: { $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] } },
-                    waitlisted: { $sum: { $cond: [{ $eq: ['$status', 'waitlisted'] }, 1, 0] } },
                     lowPriority: { $sum: { $cond: [{ $eq: ['$priority', 'low'] }, 1, 0] } },
                     mediumPriority: { $sum: { $cond: [{ $eq: ['$priority', 'medium'] }, 1, 0] } },
                     highPriority: { $sum: { $cond: [{ $eq: ['$priority', 'high'] }, 1, 0] } },
@@ -938,12 +919,6 @@ export const getApplicationStats = async (req: AuthenticatedRequest, res: Respon
             // No applications found, return zero counts
             const emptyStats = {
                 totalApplications: 0,
-                pending: 0,
-                submitted: 0,
-                underReview: 0,
-                accepted: 0,
-                rejected: 0,
-                waitlisted: 0,
                 lowPriority: 0,
                 mediumPriority: 0,
                 highPriority: 0,

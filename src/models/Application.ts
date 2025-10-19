@@ -46,11 +46,6 @@ const applicationSchema = new Schema<IApplicationDocument>({
         required: [true, 'Course ID is required'],
         ref: 'Course'
     },
-    status: {
-        type: String,
-        enum: ['pending', 'submitted', 'under_review', 'accepted', 'rejected', 'waitlisted'],
-        default: 'pending'
-    },
     applicationDate: {
         type: Date,
         default: Date.now
@@ -168,16 +163,12 @@ applicationSchema.virtual('updater', {
 // Indexes for better search performance
 applicationSchema.index({ applicationNumber: 1 }, { unique: true });
 applicationSchema.index({ studentId: 1, courseId: 1 }, { unique: true });
-applicationSchema.index({ status: 1 });
 applicationSchema.index({ applicationDate: -1 });
 applicationSchema.index({ priority: 1 });
 applicationSchema.index({ createdBy: 1 });
 applicationSchema.index({ isActive: 1 });
 
 // Compound indexes for common queries
-applicationSchema.index({ studentId: 1, status: 1 });
-applicationSchema.index({ courseId: 1, status: 1 });
-applicationSchema.index({ createdBy: 1, status: 1 });
 
 // Text search index
 applicationSchema.index({ 
