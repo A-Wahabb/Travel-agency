@@ -373,9 +373,9 @@ router.get('/:id', authenticateToken, authorizeStudentAccess, getStudent);
 router.post('/', authenticateToken, authorizeRoles('Agent', 'SuperAdmin'), createStudentValidation, validate, createStudent);
 router.put('/:id', authenticateToken, authorizeStudentAccess, updateStudentValidation, validate, updateStudent);
 router.post('/:id/documents', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent'), uploadSingleMiddleware, documentValidation, validate, uploadDocument);
-router.post('/:id/documents/bulk', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), uploadStudentDocumentsMiddleware, uploadBulkDocuments);
+router.post('/:id/documents/bulk', authenticateToken, authorizeStudentAccess, authorizeRoles('SuperAdmin', 'Agent', 'Admin'), uploadStudentDocumentsMiddleware, uploadBulkDocuments);
 router.get('/:id/documents', authenticateToken, authorizeStudentAccess, getStudentDocuments);
-router.delete('/:id/documents/:documentType', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), deleteStudentDocument);
+router.delete('/:id/documents/:documentType', authenticateToken, authorizeStudentAccess, authorizeRoles('SuperAdmin', 'Agent', 'Admin'), deleteStudentDocument);
 router.delete('/:id', authenticateToken, authorizeStudentAccess, deleteStudent);
 
 // Student options routes
@@ -383,8 +383,8 @@ router.get('/:id/options', authenticateToken, authorizeStudentAccess, getStudent
 router.put('/:id/options', authenticateToken, authorizeStudentAccess, studentOptionsValidation, validate, updateStudentOptions);
 
 // Course linking routes
-router.put('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), linkCourseValidation, validate, linkStudentToCourse);
-router.delete('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('Agent', 'Admin'), unlinkStudentFromCourse);
+router.put('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('SuperAdmin', 'Agent', 'Admin'), linkCourseValidation, validate, linkStudentToCourse);
+router.delete('/:id/course', authenticateToken, authorizeStudentAccess, authorizeRoles('SuperAdmin', 'Agent', 'Admin'), unlinkStudentFromCourse);
 
 // Storage management routes (SuperAdmin only)
 router.post('/cleanup/documents', authenticateToken, authorizeRoles('SuperAdmin'), cleanupOrphanedDocuments);

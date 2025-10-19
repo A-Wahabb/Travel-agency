@@ -148,9 +148,9 @@ router.post('/', authenticateToken, authorizeSuperAdmin, createCourseValidation,
 router.put('/:id', authenticateToken, authorizeSuperAdmin, updateCourseValidation, validate, updateCourse);
 router.delete('/:id', authenticateToken, authorizeSuperAdmin, deleteCourse);
 
-// Student-course linking routes (Agent and Admin)
-router.put('/:courseId/students/:studentId', authenticateToken, authorizeRoles('Agent', 'Admin'), linkStudentToCourse);
-router.delete('/:courseId/students/:studentId', authenticateToken, authorizeRoles('Agent', 'Admin'), unlinkStudentFromCourse);
+// Student-course linking routes (SuperAdmin, Agent and Admin)
+router.put('/:courseId/students/:studentId', authenticateToken, authorizeRoles('SuperAdmin', 'Agent', 'Admin'), linkStudentToCourse);
+router.delete('/:courseId/students/:studentId', authenticateToken, authorizeRoles('SuperAdmin', 'Agent', 'Admin'), unlinkStudentFromCourse);
 
 export default router;
 
