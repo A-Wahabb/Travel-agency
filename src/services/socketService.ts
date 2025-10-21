@@ -277,6 +277,20 @@ export class SocketService {
                 }
             });
 
+            // Handle joining application room for real-time comments
+            socket.on('join_application', (applicationId: string) => {
+                socket.join(`application:${applicationId}`);
+                socket.emit('joined_application', { applicationId });
+                console.log(`User ${user.userId} joined application room: ${applicationId}`);
+            });
+
+            // Handle leaving application room
+            socket.on('leave_application', (applicationId: string) => {
+                socket.leave(`application:${applicationId}`);
+                socket.emit('left_application', { applicationId });
+                console.log(`User ${user.userId} left application room: ${applicationId}`);
+            });
+
             // Handle test authentication event
             socket.on('test_auth', (data) => {
                 socket.emit('auth_test_response', {
@@ -366,6 +380,34 @@ export class SocketService {
         userIds.forEach(userId => {
             this.sendNotificationToUser(userId, notification);
         });
+    }
+
+    // Method to broadcast new comment to application room
+    public broadcastApplicationComment(applicationId: string, comment: any): void {
+        this.io.to(`application:${applicationId}`).emit('new_application_comment', {
+            applicationId,
+            comment
+        });
+        console.log(`Broadcasting new comment to application room: ${applicationId}`);
+    }
+
+    // Method to broadcast comment update to application room
+    public broadcastApplicationCommentUpdate(applicationId: string, commentId: string, comment: any): void {
+        this.io.to(`application:${applicationId}`).emit('application_comment_updated', {
+            applicationId,
+            commentId,
+            comment
+        });
+        console.log(`Broadcasting comment update to application room: ${applicationId}`);
+    }
+
+    // Method to broadcast comment deletion to application room
+    public broadcastApplicationCommentDeletion(applicationId: string, commentId: string): void {
+        this.io.to(`application:${applicationId}`).emit('application_comment_deleted', {
+            applicationId,
+            commentId
+        });
+        console.log(`Broadcasting comment deletion to application room: ${applicationId}`);
     }
 }
 

@@ -17,7 +17,7 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
             return;
         }
 
-        const { page = '1', limit = '10', search = '', sortBy = 'createdAt', sortOrder = 'desc', country, city, type }: PaginationQuery & { country?: string; city?: string; type?: string } = req.query;
+        const { page = '1', limit = '10', search = '', sortBy = 'createdAt', sortOrder = 'desc', country, city, type, university, intake, feeSort }: PaginationQuery & { country?: string; city?: string; type?: string; university?: string; intake?: string; feeSort?: string } = req.query;
 
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -26,28 +26,55 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
         // Build query
         const query: any = { isActive: true };
 
-        // Add search functionality
+        // Add search functionality with enhanced partial matching
         if (search) {
-            query.$text = { $search: search };
+            // Escape special regex characters and create flexible matching
+            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Use $or to search across multiple fields with regex
+            query.$or = [
+                { name: { $regex: escapedSearch, $options: 'i' } },
+                { university: { $regex: escapedSearch, $options: 'i' } },
+                { department: { $regex: escapedSearch, $options: 'i' } },
+                { country: { $regex: escapedSearch, $options: 'i' } },
+                { city: { $regex: escapedSearch, $options: 'i' } }
+            ];
         }
 
-        // Add filters
+        // Add filters with enhanced partial matching
         if (country) {
-            query.country = { $regex: country, $options: 'i' };
+            // Escape special regex characters and create flexible matching
+            const escapedCountry = country.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.country = { $regex: escapedCountry, $options: 'i' };
         }
         if (city) {
-            query.city = { $regex: city, $options: 'i' };
+            const escapedCity = city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.city = { $regex: escapedCity, $options: 'i' };
         }
         if (type) {
-            query.type = { $regex: type, $options: 'i' };
+            const escapedType = type.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.type = { $regex: escapedType, $options: 'i' };
+        }
+        if (university) {
+            // Simple regex matching for university
+            const escapedUniversity = university.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.university = { $regex: escapedUniversity, $options: 'i' };
+        }
+        if (intake) {
+            // Enhanced intake matching - more flexible for different formats
+            const escapedIntake = intake.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.intake = { $regex: escapedIntake, $options: 'i' };
         }
 
         // Build sort
         const sort: any = {};
-        if (search) {
-            sort.score = { $meta: 'textScore' };
-        } else {
-            sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        // Since we're not using text search anymore, use regular sorting
+        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+        // Debug logging (remove in production)
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Course query:', JSON.stringify(query, null, 2));
+            console.log('Sort:', JSON.stringify(sort, null, 2));
         }
 
         const courses = await Course.find(query)
@@ -55,6 +82,27 @@ export const getCourses = async (req: AuthenticatedRequest, res: Response): Prom
             .sort(sort)
             .skip(skip)
             .limit(limitNum);
+
+        // Handle fee sorting after fetching data
+        if (feeSort) {
+            courses.sort((a, b) => {
+                // Extract numeric value from fee string
+                const getFeeNumeric = (feeStr: string) => {
+                    const match = feeStr.match(/[\d,]+/);
+                    return match ? parseFloat(match[0].replace(/,/g, '')) : 0;
+                };
+
+                const feeA = getFeeNumeric(a.fee);
+                const feeB = getFeeNumeric(b.fee);
+
+                if (feeSort === 'high-to-low') {
+                    return feeB - feeA; // Descending order
+                } else if (feeSort === 'low-to-high') {
+                    return feeA - feeB; // Ascending order
+                }
+                return 0;
+            });
+        }
 
         const total = await Course.countDocuments(query);
         const totalPages = Math.ceil(total / limitNum);

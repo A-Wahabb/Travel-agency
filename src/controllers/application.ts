@@ -545,6 +545,12 @@ export const addApplicationComment = async (req: AuthenticatedRequest, res: Resp
         await application.populate('createdBy', 'name email');
         await application.populate('updatedBy', 'name email');
 
+        // Import socket service and broadcast the new comment
+        const { socketService } = require('../server');
+        if (socketService) {
+            socketService.broadcastApplicationComment(req.params.id, comment);
+        }
+
         res.status(200).json({
             success: true,
             message: 'Comment added successfully',
@@ -943,6 +949,198 @@ export const getApplicationStats = async (req: AuthenticatedRequest, res: Respon
         });
     } catch (error) {
         console.error('Get application stats error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// @desc    Update application comment
+// @route   PUT /api/applications/:id/comments/:commentId
+// @access  Agent, Admin, SuperAdmin
+export const updateApplicationComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const { content } = req.body;
+        const { id: applicationId, commentId } = req.params;
+
+        const application = await Application.findById(applicationId);
+        if (!application) {
+            res.status(404).json({
+                success: false,
+                message: 'Application not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            const student = await Student.findById(application.studentId);
+            if (!student || student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Application does not belong to your students.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            const student = await Student.findById(application.studentId);
+            if (!student || student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Application does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        // Find the comment
+        const comment = application.comments.find((c: any) => c._id.toString() === commentId);
+        if (!comment) {
+            res.status(404).json({
+                success: false,
+                message: 'Comment not found'
+            });
+            return;
+        }
+
+        // Check if user is the author of the comment
+        if (comment.authorId !== req.user.id && req.user.role !== 'SuperAdmin') {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. You can only edit your own comments.'
+            });
+            return;
+        }
+
+        // Update comment
+        comment.content = content;
+        application.updatedBy = req.user.id;
+        await application.save();
+
+        // Import socket service and broadcast the comment update
+        const { socketService } = require('../server');
+        if (socketService) {
+            socketService.broadcastApplicationCommentUpdate(applicationId, commentId, comment);
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Comment updated successfully',
+            data: {
+                comment
+            }
+        });
+    } catch (error: any) {
+        console.error('Update application comment error:', error);
+
+        // Handle Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors: { [key: string]: string } = {};
+            Object.keys(error.errors).forEach(key => {
+                validationErrors[key] = error.errors[key].message;
+            });
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+            return;
+        }
+
+        throw error;
+    }
+};
+
+// @desc    Delete application comment
+// @route   DELETE /api/applications/:id/comments/:commentId
+// @access  Agent, Admin, SuperAdmin
+export const deleteApplicationComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const { id: applicationId, commentId } = req.params;
+
+        const application = await Application.findById(applicationId);
+        if (!application) {
+            res.status(404).json({
+                success: false,
+                message: 'Application not found'
+            });
+            return;
+        }
+
+        // Check access permissions
+        if (req.user.role === 'Agent') {
+            const student = await Student.findById(application.studentId);
+            if (!student || student.agentId !== req.user.id) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Application does not belong to your students.'
+                });
+                return;
+            }
+        } else if (req.user.role === 'Admin') {
+            const student = await Student.findById(application.studentId);
+            if (!student || student.officeId !== req.user.officeId) {
+                res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Application does not belong to your office.'
+                });
+                return;
+            }
+        }
+
+        // Find the comment
+        const comment = application.comments.find((c: any) => c._id.toString() === commentId);
+        if (!comment) {
+            res.status(404).json({
+                success: false,
+                message: 'Comment not found'
+            });
+            return;
+        }
+
+        // Check if user is the author of the comment or SuperAdmin
+        if (comment.authorId !== req.user.id && req.user.role !== 'SuperAdmin') {
+            res.status(403).json({
+                success: false,
+                message: 'Access denied. You can only delete your own comments.'
+            });
+            return;
+        }
+
+        // Remove comment from array
+        application.comments = application.comments.filter((c: any) => c._id.toString() !== commentId);
+        application.updatedBy = req.user.id;
+        await application.save();
+
+        // Import socket service and broadcast the comment deletion
+        const { socketService } = require('../server');
+        if (socketService) {
+            socketService.broadcastApplicationCommentDeletion(applicationId, commentId);
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Comment deleted successfully'
+        });
+    } catch (error: any) {
+        console.error('Delete application comment error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'

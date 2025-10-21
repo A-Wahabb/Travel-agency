@@ -6,6 +6,8 @@ import {
     updateApplication,
     deleteApplication,
     addApplicationComment,
+    updateApplicationComment,
+    deleteApplicationComment,
     getApplicationsByStudent,
     getApplicationsByCourse,
     searchApplications,
@@ -67,5 +69,15 @@ router.delete('/:id', deleteApplication);
 // @desc    Add comment to application
 // @access  Agent, Admin, SuperAdmin
 router.post('/:id/comments', addApplicationComment);
+
+// @route   PUT /api/applications/:id/comments/:commentId
+// @desc    Update application comment
+// @access  Agent, Admin, SuperAdmin
+router.put('/:id/comments/:commentId', updateApplicationComment);
+
+// @route   DELETE /api/applications/:id/comments/:commentId
+// @desc    Delete application comment
+// @access  Agent, Admin, SuperAdmin
+router.delete('/:id/comments/:commentId', deleteApplicationComment);
 
 export default router;
