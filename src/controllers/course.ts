@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Course from '../models/Course';
 import Student from '../models/Student';
+import Application from '../models/Application';
 import { AuthenticatedRequest, CreateCourseRequest, UpdateCourseRequest, LinkStudentToCourseRequest, PaginationQuery } from '../types';
 import ExcelJS from 'exceljs';
 
@@ -305,6 +306,20 @@ export const deleteCourse = async (req: AuthenticatedRequest, res: Response): Pr
             res.status(404).json({
                 success: false,
                 message: 'Course not found'
+            });
+            return;
+        }
+
+        // Check if course has any linked applications
+        const linkedApplications = await Application.countDocuments({
+            courseId: req.params.id,
+            isActive: true
+        });
+
+        if (linkedApplications > 0) {
+            res.status(400).json({
+                success: false,
+                message: `Cannot delete course. This course is linked to ${linkedApplications} application(s). Please remove all applications before deleting the course.`
             });
             return;
         }
