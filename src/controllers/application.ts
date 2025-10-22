@@ -881,6 +881,177 @@ export const searchApplications = async (req: AuthenticatedRequest, res: Respons
     }
 };
 
+// @desc    Unified search for students and applications
+// @route   GET /api/applications/unified-search
+// @access  Agent, Admin, SuperAdmin
+export const unifiedSearch = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+            return;
+        }
+
+        const {
+            q = '',
+            limit = '10'
+        }: { q?: string; limit?: string } = req.query;
+
+        if (!q || q.trim() === '') {
+            res.status(400).json({
+                success: false,
+                message: 'Search query parameter "q" is required'
+            });
+            return;
+        }
+
+        const limitNum = parseInt(limit);
+        const searchQuery = q.trim();
+
+        // Helper function to check if a string is a valid ObjectId
+        const isValidObjectId = (str: string): boolean => {
+            return /^[0-9a-fA-F]{24}$/.test(str);
+        };
+
+        // Build student query with conditional ObjectId search
+        const studentQueryConditions: any[] = [
+            { name: { $regex: searchQuery, $options: 'i' } },
+            { studentCode: { $regex: searchQuery, $options: 'i' } },
+            { email: { $regex: searchQuery, $options: 'i' } }
+        ];
+
+        // Only add _id search if the query is a valid ObjectId
+        if (isValidObjectId(searchQuery)) {
+            studentQueryConditions.push({ _id: searchQuery });
+        }
+
+        const studentQuery: any = {
+            isActive: true,
+            $or: studentQueryConditions
+        };
+
+        // Apply role-based filtering for students
+        if (req.user.role === 'Agent') {
+            studentQuery.agentId = req.user.id;
+        } else if (req.user.role === 'Admin') {
+            studentQuery.officeId = req.user.officeId;
+        }
+
+        const students = await Student.find(studentQuery)
+            .populate('agentId', 'name email')
+            .populate('officeId', 'name')
+            .limit(limitNum);
+
+        // Build application query with conditional ObjectId search
+        const applicationQueryConditions: any[] = [
+            { applicationNumber: { $regex: searchQuery, $options: 'i' } }
+        ];
+
+        // Only add _id search if the query is a valid ObjectId
+        if (isValidObjectId(searchQuery)) {
+            applicationQueryConditions.push({ _id: searchQuery });
+        }
+
+        const applicationQuery: any = {
+            isActive: true,
+            $or: applicationQueryConditions
+        };
+
+        // Apply role-based filtering for applications
+        if (req.user.role === 'Agent') {
+            // Agent can only see applications for their students
+            const agentStudentIds = await Student.find({ agentId: req.user.id, isActive: true }).select('_id');
+            applicationQuery.studentId = { $in: agentStudentIds.map(s => s._id) };
+        } else if (req.user.role === 'Admin') {
+            // Admin can see applications for students in their office
+            const officeStudentIds = await Student.find({ officeId: req.user.officeId, isActive: true }).select('_id');
+            applicationQuery.studentId = { $in: officeStudentIds.map(s => s._id) };
+        }
+
+        const applications = await Application.find(applicationQuery)
+            .populate('studentId', 'name email studentCode agentId officeId')
+            .populate('courseId', 'name university country city department')
+            .limit(limitNum);
+
+        // Check for exact matches
+        const exactStudentMatch = students.find(student => 
+            student.studentCode === searchQuery || 
+            student._id.toString() === searchQuery ||
+            student.email === searchQuery
+        );
+
+        const exactApplicationMatch = applications.find(application => 
+            application.applicationNumber === searchQuery ||
+            application._id.toString() === searchQuery
+        );
+
+        // If we have exact matches, return them directly
+        if (exactStudentMatch && students.length === 1) {
+            res.status(200).json({
+                success: true,
+                message: 'Exact student match found',
+                type: 'exact_student',
+                data: exactStudentMatch,
+                searchQuery
+            });
+            return;
+        }
+
+        if (exactApplicationMatch && applications.length === 1) {
+            res.status(200).json({
+                success: true,
+                message: 'Exact application match found',
+                type: 'exact_application',
+                data: exactApplicationMatch,
+                searchQuery
+            });
+            return;
+        }
+
+        // Return multiple results for dropdown
+        const results = {
+            students: students.map(student => ({
+                _id: student._id,
+                name: student.name,
+                studentCode: student.studentCode,
+                email: student.email,
+                type: 'student',
+                agent: (student.agentId as any)?.name || 'N/A',
+                office: (student.officeId as any)?.name || 'N/A'
+            })),
+            applications: applications.map(application => ({
+                _id: application._id,
+                applicationNumber: application.applicationNumber,
+                studentName: (application.studentId as any)?.name || 'Unknown Student',
+                studentCode: (application.studentId as any)?.studentCode || 'N/A',
+                courseName: (application.courseId as any)?.name || 'Unknown Course',
+                university: (application.courseId as any)?.university || 'N/A',
+                priority: application.priority,
+                createdAt: application.createdAt,
+                type: 'application'
+            }))
+        };
+
+        res.status(200).json({
+            success: true,
+            message: 'Search completed successfully',
+            type: 'multiple_results',
+            data: results,
+            searchQuery,
+            totalResults: results.students.length + results.applications.length
+        });
+
+    } catch (error) {
+        console.error('Unified search error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
 // @desc    Get application statistics
 // @route   GET /api/applications/stats
 // @access  Agent, Admin, SuperAdmin

@@ -11,6 +11,7 @@ import {
     getApplicationsByStudent,
     getApplicationsByCourse,
     searchApplications,
+    unifiedSearch,
     getApplicationStats
 } from '../controllers/application';
 import { authenticateToken } from '../middlewares/auth';
@@ -34,6 +35,11 @@ router.get('/stats', getApplicationStats);
 // @desc    Search applications
 // @access  Agent, Admin, SuperAdmin
 router.get('/search', searchApplications);
+
+// @route   GET /api/applications/unified-search
+// @desc    Unified search for students and applications
+// @access  Agent, Admin, SuperAdmin
+router.get('/unified-search', unifiedSearch);
 
 // @route   GET /api/applications/student/:studentId
 // @desc    Get applications by student ID
