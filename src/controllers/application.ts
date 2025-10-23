@@ -1024,6 +1024,7 @@ export const unifiedSearch = async (req: AuthenticatedRequest, res: Response): P
             applications: applications.map(application => ({
                 _id: application._id,
                 applicationNumber: application.applicationNumber,
+                studentId: application.studentId,
                 studentName: (application.studentId as any)?.name || 'Unknown Student',
                 studentCode: (application.studentId as any)?.studentCode || 'N/A',
                 courseName: (application.courseId as any)?.name || 'Unknown Course',
