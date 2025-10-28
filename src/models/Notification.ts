@@ -1,67 +1,74 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { INotification } from '../types';
 
-export interface INotificationDocument extends INotification, Document { }
+export interface INotification extends Document {
+    userId: string;
+    type: 'comment_notification' | 'application_notification' | 'system' | 'info' | 'warning' | 'error';
+    title: string;
+    message: string;
+    isRead: boolean;
+    readAt?: Date;
+    applicationId?: string;
+    studentId?: string;
+    authorId?: string;
+    authorName?: string;
+    priority?: 'low' | 'medium' | 'high';
+    metadata?: Record<string, any>;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
-const notificationSchema = new Schema<INotificationDocument>({
-    officeId: {
+const notificationSchema = new Schema<INotification>({
+    userId: {
         type: String,
-        required: [true, 'officeId:Office ID is required']
-    },
-    agentId: {
-        type: String,
-        required: [true, 'agentId:Agent ID is required']
-    },
-    message: {
-        type: String,
-        required: [true, 'message:Message is required'],
-        trim: true,
-        maxlength: [500, 'Message cannot exceed 500 characters']
-    },
-    title: {
-        type: String,
-        required: [true, 'title:Title is required'],
-        trim: true,
-        maxlength: [100, 'Title cannot exceed 100 characters']
+        required: true,
+        index: true
     },
     type: {
         type: String,
-        enum: ['info', 'success', 'warning', 'error', 'payment', 'student', 'system'],
+        enum: ['comment_notification', 'application_notification', 'system', 'info', 'warning', 'error'],
         default: 'info'
     },
-    status: {
+    title: {
         type: String,
-        enum: ['unread', 'read'],
-        default: 'unread'
+        required: true
     },
-    priority: {
+    message: {
         type: String,
-        enum: ['low', 'medium', 'high', 'urgent'],
-        default: 'medium'
+        required: true
+    },
+    isRead: {
+        type: Boolean,
+        default: false
     },
     readAt: {
         type: Date
     },
-    expiresAt: {
-        type: Date
+    applicationId: {
+        type: String
+    },
+    studentId: {
+        type: String
+    },
+    authorId: {
+        type: String
+    },
+    authorName: {
+        type: String
+    },
+    priority: {
+        type: String,
+        enum: ['low', 'medium', 'high'],
+        default: 'medium'
+    },
+    metadata: {
+        type: Schema.Types.Mixed
     }
 }, {
     timestamps: true
 });
 
-// Method to mark notification as read
-notificationSchema.methods.markAsRead = async function (): Promise<void> {
-    this.status = 'read';
-    this.readAt = new Date();
-    await this.save();
-};
+// Index for efficient queries
+notificationSchema.index({ userId: 1, isRead: 1 });
+notificationSchema.index({ userId: 1, createdAt: -1 });
 
-// Method to mark notification as unread
-notificationSchema.methods.markAsUnread = async function (): Promise<void> {
-    this.status = 'unread';
-    this.readAt = undefined;
-    await this.save();
-};
-
-export default mongoose.model<INotificationDocument>('Notification', notificationSchema);
-
+export default mongoose.model<INotification>('Notification', notificationSchema);

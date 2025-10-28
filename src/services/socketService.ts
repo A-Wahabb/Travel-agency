@@ -315,8 +315,14 @@ export class SocketService {
     // Method to send notification to specific user
     public sendNotificationToUser(userId: string, notification: any): void {
         const socketId = this.connectedUsers.get(userId);
+        console.log(`📤 Sending notification to user ${userId}, connected: ${!!socketId}`);
+        
         if (socketId) {
             this.io.to(socketId).emit('notification', notification);
+            console.log(`✅ Notification sent to socket ${socketId}`);
+        } else {
+            console.log(`⚠️ User ${userId} is not connected, notification will not be received`);
+            // TODO: Store notification in database for when user comes online
         }
     }
 
@@ -377,6 +383,9 @@ export class SocketService {
 
     // Method to send notification to multiple users
     public sendNotificationToUsers(userIds: string[], notification: any): void {
+        console.log(`📤 Calling sendNotificationToUsers for ${userIds.length} users`);
+        console.log(`📊 Currently connected users:`, Array.from(this.connectedUsers.keys()));
+        
         userIds.forEach(userId => {
             this.sendNotificationToUser(userId, notification);
         });

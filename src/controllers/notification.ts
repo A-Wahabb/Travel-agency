@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import Notification from '../models/Notification';
-import { AuthenticatedRequest, CreateNotificationRequest, NotificationQuery } from '../types';
+import { AuthenticatedRequest } from '../types';
 
-// @desc    Get all notifications
+// @desc    Get all notifications for current user
 // @route   GET /api/notifications
-// @access  Agent, Admin, SuperAdmin
+// @access  Private
 export const getNotifications = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         if (!req.user) {
@@ -15,55 +15,34 @@ export const getNotifications = async (req: AuthenticatedRequest, res: Response)
             return;
         }
 
-        const { page = '1', limit = '10', status = '', type = '', sortBy = 'createdAt', sortOrder = 'desc' }: NotificationQuery = req.query;
+        const { isRead, limit = '50' } = req.query;
+        const limitNum = parseInt(limit as string);
 
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
-        const skip = (pageNum - 1) * limitNum;
+        const query: any = { userId: req.user.id };
 
-        // Build query based on role
-        const query: any = {};
-
-        if (req.user.role === 'Agent') {
-            query.agentId = req.user.id;
-        } else if (req.user.role === 'Admin') {
-            query.officeId = req.user.officeId;
+        if (isRead !== undefined) {
+            query.isRead = isRead === 'true';
         }
-
-        if (status) {
-            query.status = status;
-        }
-
-        if (type) {
-            query.type = type;
-        }
-
-        // Build sort
-        const sort: any = {};
-        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
         const notifications = await Notification.find(query)
-            .populate('officeId', 'name')
-            .populate('agentId', 'name email')
-            .sort(sort)
-            .skip(skip)
+            .sort({ createdAt: -1 })
             .limit(limitNum);
 
-        const total = await Notification.countDocuments(query);
-        const totalPages = Math.ceil(total / limitNum);
+        const unreadCount = await Notification.countDocuments({
+            userId: req.user.id,
+            isRead: false
+        });
 
         res.status(200).json({
             success: true,
             message: 'Notifications retrieved successfully',
-            data: notifications,
-            pagination: {
-                page: pageNum,
-                limit: limitNum,
-                total,
-                totalPages
+            data: {
+                notifications,
+                unreadCount,
+                total: notifications.length
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get notifications error:', error);
         res.status(500).json({
             success: false,
@@ -72,237 +51,10 @@ export const getNotifications = async (req: AuthenticatedRequest, res: Response)
     }
 };
 
-// @desc    Get single notification
-// @route   GET /api/notifications/:id
-// @access  Agent, Admin, SuperAdmin
-export const getNotification = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
-        const notification = await Notification.findById(req.params.id)
-            .populate('officeId', 'name')
-            .populate('agentId', 'name email');
-
-        if (!notification) {
-            res.status(404).json({
-                success: false,
-                message: 'Notification not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && notification.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && notification.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Notification retrieved successfully',
-            data: notification
-        });
-    } catch (error) {
-        console.error('Get notification error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error'
-        });
-    }
-};
-
-// @desc    Create notification
-// @route   POST /api/notifications
-// @access  Agent, Admin, SuperAdmin
-export const createNotification = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
-        const { officeId, agentId, message, title, type, priority, expiresAt }: CreateNotificationRequest = req.body;
-
-        // Validate access permissions
-        if (req.user.role === 'Agent') {
-            if (agentId !== req.user.id) {
-                res.status(403).json({
-                    success: false,
-                    message: 'Can only create notifications for yourself'
-                });
-                return;
-            }
-        } else if (req.user.role === 'Admin') {
-            if (officeId !== req.user.officeId) {
-                res.status(403).json({
-                    success: false,
-                    message: 'Can only create notifications for your own office'
-                });
-                return;
-            }
-        }
-
-        const notification = await Notification.create({
-            officeId,
-            agentId,
-            message,
-            title,
-            type,
-            priority,
-            expiresAt: expiresAt ? new Date(expiresAt) : undefined
-        });
-
-        await notification.populate('officeId', 'name');
-        await notification.populate('agentId', 'name email');
-
-        res.status(201).json({
-            success: true,
-            message: 'Notification created successfully',
-            data: notification
-        });
-    } catch (error: any) {
-        console.error('Create notification error:', error);
-
-        // Handle Mongoose validation errors
-        if (error.name === 'ValidationError') {
-            const validationErrors: { [key: string]: string } = {};
-            Object.keys(error.errors).forEach(key => {
-                validationErrors[key] = error.errors[key].message;
-            });
-            res.status(400).json({
-                success: false,
-                message: 'Validation failed',
-                errors: validationErrors
-            });
-            return;
-        }
-
-        // Handle duplicate key error
-        if (error.code === 11000) {
-            res.status(400).json({
-                success: false,
-                message: 'Duplicate field value entered'
-            });
-            return;
-        }
-
-        // For other errors, let the error handler middleware handle them
-        throw error;
-    }
-};
-
-// @desc    Update notification
-// @route   PUT /api/notifications/:id
-// @access  Agent, Admin, SuperAdmin
-export const updateNotification = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-
-        const { message, title, type, priority, expiresAt } = req.body;
-
-        const notification = await Notification.findById(req.params.id);
-        if (!notification) {
-            res.status(404).json({
-                success: false,
-                message: 'Notification not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && notification.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && notification.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        // Update fields
-        if (message) notification.message = message;
-        if (title) notification.title = title;
-        if (type) notification.type = type;
-        if (priority) notification.priority = priority;
-        if (expiresAt) notification.expiresAt = new Date(expiresAt);
-
-        await notification.save();
-        await notification.populate('officeId', 'name');
-        await notification.populate('agentId', 'name email');
-
-        res.status(200).json({
-            success: true,
-            message: 'Notification updated successfully',
-            data: notification
-        });
-    } catch (error: any) {
-        console.error('Update notification error:', error);
-
-        // Handle Mongoose validation errors
-        if (error.name === 'ValidationError') {
-            const validationErrors: { [key: string]: string } = {};
-            Object.keys(error.errors).forEach(key => {
-                validationErrors[key] = error.errors[key].message;
-            });
-            res.status(400).json({
-                success: false,
-                message: 'Validation failed',
-                errors: validationErrors
-            });
-            return;
-        }
-
-        // Handle duplicate key error
-        if (error.code === 11000) {
-            res.status(400).json({
-                success: false,
-                message: 'Duplicate field value entered'
-            });
-            return;
-        }
-
-        // For other errors, let the error handler middleware handle them
-        throw error;
-    }
-};
-
 // @desc    Mark notification as read
 // @route   PUT /api/notifications/:id/read
-// @access  Agent, Admin, SuperAdmin
-export const markAsRead = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// @access  Private
+export const markNotificationAsRead = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         if (!req.user) {
             res.status(401).json({
@@ -312,7 +64,13 @@ export const markAsRead = async (req: AuthenticatedRequest, res: Response): Prom
             return;
         }
 
-        const notification = await Notification.findById(req.params.id);
+        const { id } = req.params;
+
+        const notification = await Notification.findOne({
+            _id: id,
+            userId: req.user.id
+        });
+
         if (!notification) {
             res.status(404).json({
                 success: false,
@@ -321,31 +79,17 @@ export const markAsRead = async (req: AuthenticatedRequest, res: Response): Prom
             return;
         }
 
-        // Check access permissions
-        if (req.user.role === 'Agent' && notification.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && notification.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        await notification.markAsRead();
+        notification.isRead = true;
+        notification.readAt = new Date();
+        await notification.save();
 
         res.status(200).json({
             success: true,
-            message: 'Notification marked as read'
+            message: 'Notification marked as read',
+            data: notification
         });
-    } catch (error) {
-        console.error('Mark as read error:', error);
+    } catch (error: any) {
+        console.error('Mark notification as read error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'
@@ -353,10 +97,10 @@ export const markAsRead = async (req: AuthenticatedRequest, res: Response): Prom
     }
 };
 
-// @desc    Mark notification as unread
-// @route   PUT /api/notifications/:id/unread
-// @access  Agent, Admin, SuperAdmin
-export const markAsUnread = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// @desc    Mark all notifications as read
+// @route   PUT /api/notifications/read-all
+// @access  Private
+export const markAllNotificationsAsRead = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         if (!req.user) {
             res.status(401).json({
@@ -366,50 +110,72 @@ export const markAsUnread = async (req: AuthenticatedRequest, res: Response): Pr
             return;
         }
 
-        const notification = await Notification.findById(req.params.id);
-        if (!notification) {
-            res.status(404).json({
-                success: false,
-                message: 'Notification not found'
-            });
-            return;
-        }
-
-        // Check access permissions
-        if (req.user.role === 'Agent' && notification.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && notification.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        await notification.markAsUnread();
+        const result = await Notification.updateMany(
+            { userId: req.user.id, isRead: false },
+            { 
+                isRead: true,
+                readAt: new Date()
+            }
+        );
 
         res.status(200).json({
             success: true,
-            message: 'Notification marked as unread'
+            message: `${result.modifiedCount} notifications marked as read`,
+            data: {
+                modifiedCount: result.modifiedCount
+            }
         });
-    } catch (error) {
-        console.error('Mark as unread error:', error);
+    } catch (error: any) {
+        console.error('Mark all notifications as read error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'
         });
+    }
+};
+
+// @desc    Create notification (internal use)
+// @route   POST /api/notifications
+// @access  Private
+export const createNotification = async (notificationData: {
+    userId: string;
+    type: string;
+    title: string;
+    message: string;
+    applicationId?: string;
+    studentId?: string;
+    authorId?: string;
+    authorName?: string;
+    priority?: 'low' | 'medium' | 'high';
+    metadata?: Record<string, any>;
+}): Promise<any> => {
+    try {
+        const notification = new Notification({
+            userId: notificationData.userId,
+            type: notificationData.type,
+            title: notificationData.title,
+            message: notificationData.message,
+            applicationId: notificationData.applicationId,
+            studentId: notificationData.studentId,
+            authorId: notificationData.authorId,
+            authorName: notificationData.authorName,
+            priority: notificationData.priority || 'medium',
+            metadata: notificationData.metadata,
+            isRead: false
+        });
+
+        await notification.save();
+        console.log(`✅ Notification created for user ${notificationData.userId}`);
+        return notification;
+    } catch (error) {
+        console.error('Create notification error:', error);
+        return null;
     }
 };
 
 // @desc    Delete notification
 // @route   DELETE /api/notifications/:id
-// @access  Agent, Admin, SuperAdmin
+// @access  Private
 export const deleteNotification = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         if (!req.user) {
@@ -420,7 +186,13 @@ export const deleteNotification = async (req: AuthenticatedRequest, res: Respons
             return;
         }
 
-        const notification = await Notification.findById(req.params.id);
+        const { id } = req.params;
+
+        const notification = await Notification.findOneAndDelete({
+            _id: id,
+            userId: req.user.id
+        });
+
         if (!notification) {
             res.status(404).json({
                 success: false,
@@ -429,30 +201,12 @@ export const deleteNotification = async (req: AuthenticatedRequest, res: Respons
             return;
         }
 
-        // Check access permissions
-        if (req.user.role === 'Agent' && notification.agentId.toString() !== req.user.id) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        if (req.user.role === 'Admin' && notification.officeId.toString() !== req.user.officeId) {
-            res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
-            return;
-        }
-
-        await Notification.findByIdAndDelete(req.params.id);
-
         res.status(200).json({
             success: true,
-            message: 'Notification deleted successfully'
+            message: 'Notification deleted successfully',
+            data: notification
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Delete notification error:', error);
         res.status(500).json({
             success: false,
@@ -461,10 +215,10 @@ export const deleteNotification = async (req: AuthenticatedRequest, res: Respons
     }
 };
 
-// @desc    Get unread notifications count
-// @route   GET /api/notifications/unread/count
-// @access  Agent, Admin, SuperAdmin
-export const getUnreadCount = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// @desc    Delete all notifications
+// @route   DELETE /api/notifications
+// @access  Private
+export const deleteAllNotifications = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         if (!req.user) {
             res.status(401).json({
@@ -474,28 +228,20 @@ export const getUnreadCount = async (req: AuthenticatedRequest, res: Response): 
             return;
         }
 
-        // Build query based on role
-        const query: any = { status: 'unread' };
-
-        if (req.user.role === 'Agent') {
-            query.agentId = req.user.id;
-        } else if (req.user.role === 'Admin') {
-            query.officeId = req.user.officeId;
-        }
-
-        const count = await Notification.countDocuments(query);
+        const result = await Notification.deleteMany({ userId: req.user.id });
 
         res.status(200).json({
             success: true,
-            message: 'Unread count retrieved successfully',
-            data: { count }
+            message: `${result.deletedCount} notifications deleted`,
+            data: {
+                deletedCount: result.deletedCount
+            }
         });
-    } catch (error) {
-        console.error('Get unread count error:', error);
+    } catch (error: any) {
+        console.error('Delete all notifications error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error'
         });
     }
 };
-

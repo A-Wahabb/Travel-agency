@@ -3,6 +3,7 @@ import Application from '../models/Application';
 import Student from '../models/Student';
 import Course from '../models/Course';
 import Agent from '../models/Agent';
+import { createNotification } from './notification';
 import { getNextApplicationNumber } from '../utils/applicationNumberGenerator';
 import { 
     AuthenticatedRequest, 
@@ -545,10 +546,90 @@ export const addApplicationComment = async (req: AuthenticatedRequest, res: Resp
         await application.populate('createdBy', 'name email');
         await application.populate('updatedBy', 'name email');
 
+        // Get all unique comment authors for notifications
+        const commentAuthors = new Set<string>();
+        if (application.comments && application.comments.length > 0) {
+            application.comments.forEach((c: any) => {
+                if (c.authorId) {
+                    commentAuthors.add(c.authorId.toString());
+                }
+            });
+        }
+
+        // Get student's agent for notification
+        const student = await Student.findById(application.studentId);
+        const notificationRecipients = new Set<string>();
+        
+        if (student && student.agentId) {
+            notificationRecipients.add(student.agentId.toString());
+            console.log(`📋 Adding student's agent to notification recipients: ${student.agentId}`);
+        }
+        
+        // Add all comment authors
+        commentAuthors.forEach(authorId => {
+            notificationRecipients.add(authorId);
+            console.log(`📋 Adding comment author to notification recipients: ${authorId}`);
+        });
+
+        // Remove the current user from notification recipients
+        notificationRecipients.delete(req.user.id);
+        
+        console.log(`📊 Total notification recipients: ${notificationRecipients.size}`);
+        console.log(`📊 Recipients:`, Array.from(notificationRecipients));
+
         // Import socket service and broadcast the new comment
         const { socketService } = require('../server');
         if (socketService) {
             socketService.broadcastApplicationComment(req.params.id, comment);
+            
+            // Send notifications to all relevant users
+            const recipientList = Array.from(notificationRecipients);
+            console.log(`🔔 Preparing to send notifications to ${recipientList.length} users`);
+            
+            if (recipientList.length > 0) {
+                const notificationData = {
+                    type: 'comment_notification',
+                    title: 'New Comment on Application',
+                    message: `${agent.name} commented on application ${application.applicationNumber || application._id}`,
+                    applicationId: application._id.toString(),
+                    studentId: application.studentId?.toString(),
+                    authorId: req.user.id,
+                    authorName: agent.name,
+                    timestamp: new Date(),
+                    priority: 'medium' as const
+                };
+                
+                console.log(`📤 Sending notification:`, notificationData);
+                
+                // Send via Socket.IO for online users and store in database for offline users
+                for (const userId of recipientList) {
+                    const isOnline = socketService.isUserOnline(userId);
+                    
+                    if (isOnline) {
+                        // Send via socket for immediate delivery
+                        socketService.sendNotificationToUser(userId, notificationData);
+                        console.log(`📡 Real-time notification sent to online user ${userId}`);
+                    } else {
+                        // Store in database for when user comes online
+                        await createNotification({
+                            userId,
+                            type: 'comment_notification',
+                            title: notificationData.title,
+                            message: notificationData.message,
+                            applicationId: notificationData.applicationId,
+                            studentId: notificationData.studentId,
+                            authorId: notificationData.authorId,
+                            authorName: notificationData.authorName,
+                            priority: notificationData.priority
+                        });
+                        console.log(`💾 Notification stored in database for offline user ${userId}`);
+                    }
+                }
+            } else {
+                console.log(`⚠️ No notification recipients found`);
+            }
+        } else {
+            console.error(`❌ Socket service not available`);
         }
 
         res.status(200).json({
