@@ -928,7 +928,7 @@ export const unifiedSearch = async (req: AuthenticatedRequest, res: Response): P
         }
 
         const studentQuery: any = {
-            isActive: true,
+            status: { $in: ['active', 'pending'] }, // Use status field instead of isActive
             $or: studentQueryConditions
         };
 
@@ -954,21 +954,60 @@ export const unifiedSearch = async (req: AuthenticatedRequest, res: Response): P
             applicationQueryConditions.push({ _id: searchQuery });
         }
 
+        // Search for applications by student code or email
+        const studentsFound = await Student.find({
+            $or: [
+                { studentCode: { $regex: searchQuery, $options: 'i' } },
+                { email: { $regex: searchQuery, $options: 'i' } },
+                { name: { $regex: searchQuery, $options: 'i' } }
+            ],
+            status: { $in: ['active', 'pending'] } // Use status field instead of isActive
+        }).select('_id name studentCode');
+
+        console.log('Students found for search:', JSON.stringify(studentsFound, null, 2));
+
+        if (studentsFound.length > 0) {
+            const studentIds = studentsFound.map(s => s._id);
+            console.log('Student IDs to search for applications:', studentIds);
+            applicationQueryConditions.push({ 
+                studentId: { $in: studentIds } 
+            });
+        }
+
+        // Apply role-based filtering for applications BEFORE building the query
+        let allowedStudentIds: string[] = [];
+        if (req.user.role === 'Agent') {
+            // Agent can only see applications for their students
+            const agentStudentIds = await Student.find({ agentId: req.user.id, isActive: true }).select('_id');
+            allowedStudentIds = agentStudentIds.map(s => s._id.toString());
+        } else if (req.user.role === 'Admin') {
+            // Admin can see applications for students in their office
+            const officeStudentIds = await Student.find({ officeId: req.user.officeId, isActive: true }).select('_id');
+            allowedStudentIds = officeStudentIds.map(s => s._id.toString());
+        }
+
+        // Filter the studentId condition by role if applicable
+        const studentIdCondition = applicationQueryConditions.find(cond => cond.studentId);
+        if (studentIdCondition && studentIdCondition.studentId.$in && allowedStudentIds.length > 0) {
+            // Intersect the arrays - only show applications for students that match both search AND role permissions
+            studentIdCondition.studentId.$in = studentIdCondition.studentId.$in
+                .filter((id: any) => allowedStudentIds.includes(id.toString()));
+            
+            // If no results after filtering, add an impossible condition to return empty results
+            if (studentIdCondition.studentId.$in.length === 0) {
+                applicationQueryConditions.push({ _id: '000000000000000000000000' }); // Impossible ObjectId
+            }
+        } else if (allowedStudentIds.length > 0 && !studentIdCondition) {
+            // No student search criteria but need role filtering - add role filter to conditions
+            applicationQueryConditions.push({ studentId: { $in: allowedStudentIds } });
+        }
+
         const applicationQuery: any = {
             isActive: true,
             $or: applicationQueryConditions
         };
 
-        // Apply role-based filtering for applications
-        if (req.user.role === 'Agent') {
-            // Agent can only see applications for their students
-            const agentStudentIds = await Student.find({ agentId: req.user.id, isActive: true }).select('_id');
-            applicationQuery.studentId = { $in: agentStudentIds.map(s => s._id) };
-        } else if (req.user.role === 'Admin') {
-            // Admin can see applications for students in their office
-            const officeStudentIds = await Student.find({ officeId: req.user.officeId, isActive: true }).select('_id');
-            applicationQuery.studentId = { $in: officeStudentIds.map(s => s._id) };
-        }
+        console.log('Application search query:', JSON.stringify(applicationQuery, null, 2));
 
         const applications = await Application.find(applicationQuery)
             .populate('studentId', 'name email studentCode agentId officeId')
