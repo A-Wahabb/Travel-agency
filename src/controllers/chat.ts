@@ -148,12 +148,23 @@ export const getUserChats = async (req: AuthenticatedRequest, res: Response): Pr
             });
         }
 
+        // Get unread counts for each chat
+        const chatsWithUnread = await Promise.all(
+            chats.map(async (chat) => {
+                const unreadCount = await Message.getUnreadCount(currentUserId, chat._id.toString());
+                return {
+                    ...chat.toObject(),
+                    unreadCount
+                };
+            })
+        );
+
         const total = await Chat.countDocuments(query);
 
         res.status(200).json({
             success: true,
             message: 'Chats retrieved successfully',
-            data: chats,
+            data: chatsWithUnread,
             pagination: {
                 page,
                 limit,

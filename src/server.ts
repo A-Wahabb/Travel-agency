@@ -20,6 +20,7 @@ import applicationRoutes from './routes/applications';
 import paymentRoutes from './routes/payments';
 import notificationRoutes from './routes/notifications';
 import chatRoutes from './routes/chats';
+import announcementRoutes from './routes/announcements';
 
 // Import middleware
 import errorHandler from './middlewares/errorHandler';
@@ -29,6 +30,7 @@ import connectDB from './config/db';
 
 // Import Socket.IO service
 import SocketService from './services/socketService';
+import { setSocketService } from './services/socketBus';
 
 
 const app: Application = express();
@@ -37,6 +39,7 @@ const PORT: string | number = process.env.PORT || 5000;
 
 // Initialize Socket.IO service
 const socketService = new SocketService(server);
+setSocketService(socketService);
 
 // Security middleware
 app.use(helmet());
@@ -86,6 +89,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

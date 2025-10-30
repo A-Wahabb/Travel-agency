@@ -1163,6 +1163,36 @@ export const getStudentOptionsCount = async (req: AuthenticatedRequest, res: Res
         }
         // SuperAdmin can access all students (no additional filter)
 
+        // Optional date filtering
+        const { startDate, endDate, dateField = 'createdAt' } = req.query as {
+            startDate?: string;
+            endDate?: string;
+            dateField?: string;
+        };
+
+        if (startDate || endDate) {
+            const validDateField = ['createdAt', 'updatedAt'].includes(dateField as string)
+                ? (dateField as string)
+                : 'createdAt';
+            (matchQuery as any)[validDateField] = {};
+
+            if (startDate) {
+                const start = new Date(startDate as string);
+                if (!isNaN(start.getTime())) {
+                    start.setHours(0, 0, 0, 0);
+                    (matchQuery as any)[validDateField].$gte = start;
+                }
+            }
+
+            if (endDate) {
+                const end = new Date(endDate as string);
+                if (!isNaN(end.getTime())) {
+                    end.setHours(23, 59, 59, 999);
+                    (matchQuery as any)[validDateField].$lte = end;
+                }
+            }
+        }
+
         const pipeline = [
             { $match: matchQuery },
             {
