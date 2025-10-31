@@ -592,3 +592,34 @@ export interface ChatQuery extends PaginationQuery {
     search?: string;
     chatType?: string;
 }
+
+// Learning Resource interfaces
+export interface ILearningResourceFile {
+    _id?: string;
+    filename: string;
+    originalName: string;
+    s3Key: string;
+    s3Url?: string;
+    size?: number;
+    mimetype?: string;
+    uploadedAt: Date;
+    uploadedBy: string;
+}
+
+export interface ILearningResource extends BaseDocument {
+    country: string;
+    files: ILearningResourceFile[];
+}
+
+export interface CreateLearningResourceRequest {
+    country: string;
+}
+
+export interface UploadLearningResourceFileRequest {
+    country: string;
+}
+
+export interface DeleteLearningResourceFileRequest {
+    country: string;
+    fileId: string;
+}

@@ -22,6 +22,7 @@ import notificationRoutes from './routes/notifications';
 import chatRoutes from './routes/chats';
 import announcementRoutes from './routes/announcements';
 import metaRoutes from './routes/meta';
+import learningResourceRoutes from './routes/learningResources';
 
 // Import middleware
 import errorHandler from './middlewares/errorHandler';
@@ -92,6 +93,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/meta', metaRoutes);
+app.use('/api/learning-resources', learningResourceRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
