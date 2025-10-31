@@ -46,6 +46,11 @@ const courseSchema = new Schema<ICourseDocument>({
         enum: ['Yes', 'No'],
         default: 'No'
     },
+    openAdmission: {
+        type: Boolean,
+        required: [true, 'openAdmission:Open Admission field is required'],
+        default: false
+    },
     type: {
         type: String,
         required: [true, 'type:Course type is required'],

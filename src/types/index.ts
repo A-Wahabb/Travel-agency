@@ -48,6 +48,7 @@ export interface ICourse extends BaseDocument {
     city: string;
     intake: string;
     isPrivate: 'Yes' | 'No';
+    openAdmission: boolean;
     type: string;
     fee: string;
     timePeriod: string;
@@ -146,6 +147,8 @@ export type StudentDocumentType =
     | 'transcript'
     | 'languageCertificate'
     | 'passport'
+    | 'recommendationLetter1'
+    | 'recommendationLetter2'
     | 'experienceLetter'
     | 'birthCertificate'
     | 'familyRegistration'
@@ -162,6 +165,8 @@ export interface IStudentDocuments {
     transcript?: IDocument;
     languageCertificate?: IDocument;
     passport?: IDocument;
+    recommendationLetter1?: IDocument;
+    recommendationLetter2?: IDocument;
     experienceLetter?: IDocument;
     birthCertificate?: IDocument;
     familyRegistration?: IDocument;
@@ -399,6 +404,7 @@ export interface CreateCourseRequest {
     city: string;
     intake: string;
     isPrivate: 'Yes' | 'No';
+    openAdmission: boolean;
     type: string;
     fee: string;
     timePeriod: string;
@@ -416,6 +422,7 @@ export interface UpdateCourseRequest {
     city?: string;
     intake?: string;
     isPrivate?: 'Yes' | 'No';
+    openAdmission?: boolean;
     type?: string;
     fee?: string;
     timePeriod?: string;
@@ -443,6 +450,8 @@ export interface BulkDocumentUploadRequest {
         transcript?: Express.Multer.File;
         languageCertificate?: Express.Multer.File;
         passport?: Express.Multer.File;
+        recommendationLetter1?: Express.Multer.File;
+        recommendationLetter2?: Express.Multer.File;
         experienceLetter?: Express.Multer.File;
         birthCertificate?: Express.Multer.File;
         familyRegistration?: Express.Multer.File;

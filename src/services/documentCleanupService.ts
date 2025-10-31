@@ -44,7 +44,7 @@ export class DocumentCleanupService {
                     const docTypes = [
                         'profilePicture', 'matricCertificate', 'matricMarksSheet',
                         'intermediateCertificate', 'intermediateMarkSheet', 'degree',
-                        'transcript', 'languageCertificate', 'passport',
+                        'transcript', 'languageCertificate', 'passport', 'recommendationLetter1', 'recommendationLetter2',
                         'experienceLetter', 'birthCertificate', 'familyRegistration'
                     ];
 

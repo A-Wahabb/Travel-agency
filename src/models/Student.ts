@@ -54,6 +54,8 @@ const studentDocumentsSchema = new Schema<IStudentDocuments>({
     transcript: documentSchema,
     languageCertificate: documentSchema,
     passport: documentSchema,
+    recommendationLetter1: documentSchema,
+    recommendationLetter2: documentSchema,
     experienceLetter: documentSchema,
     birthCertificate: documentSchema,
     familyRegistration: documentSchema,

@@ -978,7 +978,7 @@ export const deleteStudent = async (req: AuthenticatedRequest, res: Response): P
             const documentTypes = [
                 'profilePicture', 'matricCertificate', 'matricMarksSheet',
                 'intermediateCertificate', 'intermediateMarkSheet', 'degree',
-                'transcript', 'languageCertificate', 'passport',
+                'transcript', 'languageCertificate', 'passport', 'recommendationLetter1', 'recommendationLetter2',
                 'experienceLetter', 'birthCertificate', 'familyRegistration'
             ];
 

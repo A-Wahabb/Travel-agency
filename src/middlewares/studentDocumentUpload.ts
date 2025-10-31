@@ -35,7 +35,7 @@ const upload = multer({
     fileFilter: fileFilter,
     limits: {
         fileSize: 10 * 1024 * 1024, // 10MB per file
-        files: 15 // Maximum 15 files (12 specific + up to 3 otherDocs)
+        files: 20 // Allow up to 20 files (specific fields + otherDocs)
     }
 });
 
@@ -50,6 +50,8 @@ const studentDocumentFields = [
     { name: 'transcript', maxCount: 1 },
     { name: 'languageCertificate', maxCount: 1 },
     { name: 'passport', maxCount: 1 },
+    { name: 'recommendationLetter1', maxCount: 1 },
+    { name: 'recommendationLetter2', maxCount: 1 },
     { name: 'experienceLetter', maxCount: 1 },
     { name: 'birthCertificate', maxCount: 1 },
     { name: 'familyRegistration', maxCount: 1 },
@@ -127,7 +129,7 @@ export const validateDocumentTypes = (files: { [fieldname: string]: Express.Mult
     const validDocumentTypes: StudentDocumentType[] = [
         'profilePicture', 'matricCertificate', 'matricMarksSheet',
         'intermediateCertificate', 'intermediateMarkSheet', 'degree',
-        'transcript', 'languageCertificate', 'passport',
+        'transcript', 'languageCertificate', 'passport', 'recommendationLetter1', 'recommendationLetter2',
         'experienceLetter', 'birthCertificate', 'familyRegistration', 'otherDocs'
     ];
 
