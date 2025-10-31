@@ -21,6 +21,7 @@ import paymentRoutes from './routes/payments';
 import notificationRoutes from './routes/notifications';
 import chatRoutes from './routes/chats';
 import announcementRoutes from './routes/announcements';
+import metaRoutes from './routes/meta';
 
 // Import middleware
 import errorHandler from './middlewares/errorHandler';
@@ -90,6 +91,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/meta', metaRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
