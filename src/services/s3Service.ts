@@ -3,7 +3,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
-import { optimizeFile, shouldOptimizeFile, getFileSizeString, OptimizationOptions } from './fileOptimizationService';
 
 // Load environment variables
 dotenv.config();
@@ -63,35 +62,11 @@ export interface DocumentUploadData {
 export const uploadFileToS3 = async (
     file: { buffer: Buffer; originalname: string; mimetype: string; size: number; fieldname: string },
     documentType: string,
-    studentId: string,
-    optimizationOptions?: OptimizationOptions
-): Promise<S3UploadResult & { optimizationInfo?: any }> => {
+    studentId: string
+): Promise<S3UploadResult> => {
     try {
-        let finalBuffer = file.buffer;
-        let finalMimetype = file.mimetype;
-        let optimizationInfo: any = null;
-
-        // Optimize file if needed
-        if (shouldOptimizeFile(file.buffer, file.mimetype, optimizationOptions?.maxSizeKB || 1024)) {
-            console.log(`Optimizing file: ${file.originalname} (${getFileSizeString(file.buffer.length)})`);
-
-            const optimizationResult = await optimizeFile(file.buffer, file.mimetype, optimizationOptions);
-
-            if (optimizationResult.wasOptimized) {
-                finalBuffer = optimizationResult.optimizedBuffer;
-                finalMimetype = optimizationResult.optimizedMimetype;
-
-                optimizationInfo = {
-                    originalSize: optimizationResult.originalSize,
-                    optimizedSize: optimizationResult.optimizedSize,
-                    compressionRatio: optimizationResult.compressionRatio,
-                    originalSizeString: getFileSizeString(optimizationResult.originalSize),
-                    optimizedSizeString: getFileSizeString(optimizationResult.optimizedSize)
-                };
-
-                console.log(`File optimized: ${file.originalname} - ${optimizationInfo.originalSizeString} → ${optimizationInfo.optimizedSizeString} (${optimizationResult.compressionRatio.toFixed(1)}% reduction)`);
-            }
-        }
+        const finalBuffer = file.buffer;
+        const finalMimetype = file.mimetype;
 
         // Generate unique filename with appropriate extension
         const fileExtension = path.extname(file.originalname);
@@ -107,12 +82,7 @@ export const uploadFileToS3 = async (
                 originalName: file.originalname,
                 documentType: documentType,
                 studentId: studentId,
-                uploadedAt: new Date().toISOString(),
-                optimized: optimizationInfo ? 'true' : 'false',
-                ...(optimizationInfo && {
-                    originalSize: optimizationInfo.originalSize.toString(),
-                    compressionRatio: optimizationInfo.compressionRatio.toFixed(1)
-                })
+                uploadedAt: new Date().toISOString()
             },
         });
 
@@ -133,8 +103,7 @@ export const uploadFileToS3 = async (
             originalName: file.originalname,
             size: finalBuffer.length,
             mimetype: finalMimetype,
-            uploadedAt: new Date(),
-            optimizationInfo
+            uploadedAt: new Date()
         };
     } catch (error) {
         console.error('Error uploading file to S3:', error);
@@ -146,12 +115,11 @@ export const uploadFileToS3 = async (
  * Upload multiple files to S3 with optional optimization
  */
 export const uploadMultipleFilesToS3 = async (
-    files: DocumentUploadData[],
-    optimizationOptions?: OptimizationOptions
-): Promise<(S3UploadResult & { optimizationInfo?: any })[]> => {
+    files: DocumentUploadData[]
+): Promise<S3UploadResult[]> => {
     try {
         const uploadPromises = files.map(({ file, documentType, studentId }) =>
-            uploadFileToS3(file, documentType, studentId, optimizationOptions)
+            uploadFileToS3(file, documentType, studentId)
         );
 
         const results = await Promise.all(uploadPromises);

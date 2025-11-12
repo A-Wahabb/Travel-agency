@@ -168,14 +168,6 @@ export const uploadLearningResourceFile = async (req: AuthenticatedRequest, res:
             return;
         }
 
-        // Upload to S3 with optimization
-        const optimizationOptions = {
-            maxWidth: 1920,
-            maxHeight: 1080,
-            quality: 85,
-            maxSizeKB: 5120 // 5MB for learning resources
-        };
-
         // Convert multer file to format expected by uploadFileToS3
         const fileData = {
             buffer: req.file.buffer,
@@ -188,8 +180,7 @@ export const uploadLearningResourceFile = async (req: AuthenticatedRequest, res:
         const s3Result = await uploadFileToS3(
             fileData,
             'learning-resource',
-            country,
-            optimizationOptions
+            country
         );
         uploadedS3Key = s3Result.key;
 

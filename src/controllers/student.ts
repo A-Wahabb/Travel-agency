@@ -885,14 +885,7 @@ export const uploadDocument = async (req: AuthenticatedRequest, res: Response): 
             oldS3Key = existingDocument.s3Key;
         }
 
-        // Upload to S3 with optimization
-        const optimizationOptions = {
-            maxWidth: 1920,
-            maxHeight: 1080,
-            quality: 85,
-            maxSizeKB: 1024 // 1MB
-        };
-        const s3Result = await uploadFileToS3(req.file, documentType, req.params.id, optimizationOptions);
+        const s3Result = await uploadFileToS3(req.file, documentType, req.params.id);
         uploadedS3Key = s3Result.key;
 
         const document: IDocument = {
@@ -1499,14 +1492,8 @@ export const uploadBulkDocuments = async (req: AuthenticatedRequest, res: Respon
             }
         });
 
-        // Upload files to S3 with optimization
-        const optimizationOptions = {
-            maxWidth: 1920,
-            maxHeight: 1080,
-            quality: 85,
-            maxSizeKB: 1024 // 1MB
-        };
-        const s3Results = await uploadMultipleFilesToS3(documentsToUpload, optimizationOptions);
+        // Upload files to S3
+        const s3Results = await uploadMultipleFilesToS3(documentsToUpload);
 
         // Process S3 results and create document records
         let s3ResultIndex = 0;
