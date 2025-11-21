@@ -3,24 +3,28 @@ name: Deploy Backend
 on:
   push:
     branches:
-      - main  # Deploy when main branch is updated
+      - main  # Trigger deployment when main branch is updated
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout your repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Step 2: Setup Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Build project locally (optional)
+      # Step 3: Install dependencies and build locally (optional)
+      - name: Build project locally
         run: npm ci && npm run build
 
+      # Step 4: SSH to server and deploy
       - name: Deploy backend to server
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -29,21 +33,27 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           port: 22
           script: |
-            echo "Deploying backend..."
+            echo "📦 Starting backend deployment..."
+            
+            # Navigate to project directory
             cd ${{ secrets.PROJECT_DIR }}
 
-            # Make sure latest code is pulled (optional if copying files instead)
+            # Pull latest code from main branch
             git reset --hard HEAD
             git pull origin main
 
-            # Install dependencies & build
+            # Install dependencies and build
             npm ci
             npm run build
 
-            # Restart backend with PM2
-            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start dist/server.js --name ${{ secrets.PM2_APP_NAME }}
+            # Restart backend using PM2 ecosystem file
+            if [ -f ecosystem.config.js ]; then
+              pm2 restart ecosystem.config.js --env development || pm2 start ecosystem.config.js --env development
+            else
+              pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start dist/server.js --name ${{ secrets.PM2_APP_NAME }}
+            fi
 
-            # Save PM2 process list to resurrect on reboot
+            # Save PM2 process list for reboot
             pm2 save
 
-            echo "Deployment complete!"
+            echo "✅ Deployment complete!"
