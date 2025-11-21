@@ -3,7 +3,7 @@ name: Deploy Backend
 on:
   push:
     branches:
-      - main  # your deployment branch
+      - main  # Deploy when main branch is updated
 
 jobs:
   deploy:
@@ -18,23 +18,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build project locally (optional)
+        run: npm ci && npm run build
 
-      - name: Build project
-        run: npm run build
-
-      - name: Copy code to server
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          port: 22
-          source: "."
-          target: ${{ secrets.PROJECT_DIR }}
-
-      - name: Install dependencies & restart backend
+      - name: Deploy backend to server
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -42,7 +29,21 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           port: 22
           script: |
+            echo "Deploying backend..."
             cd ${{ secrets.PROJECT_DIR }}
+
+            # Make sure latest code is pulled (optional if copying files instead)
+            git reset --hard HEAD
+            git pull origin main
+
+            # Install dependencies & build
             npm ci
-            npm run migrate # if you have migrations
-            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start dist/index.js --name ${{ secrets.PM2_APP_NAME }}
+            npm run build
+
+            # Restart backend with PM2
+            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start dist/server.js --name ${{ secrets.PM2_APP_NAME }}
+
+            # Save PM2 process list to resurrect on reboot
+            pm2 save
+
+            echo "Deployment complete!"
