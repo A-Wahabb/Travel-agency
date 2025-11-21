@@ -3,7 +3,7 @@ name: Deploy Backend
 on:
   push:
     branches:
-      - main  # or your deployment branch
+      - main  # your deployment branch
 
 jobs:
   deploy:
@@ -27,22 +27,22 @@ jobs:
       - name: Copy code to server
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: deploy
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          port: 22   # change if using custom SSH port
+          port: 22
           source: "."
-          target: "/home/deploy/backend"
+          target: ${{ secrets.PROJECT_DIR }}
 
       - name: Install dependencies & restart backend
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: deploy
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: 22
           script: |
-            cd /home/deploy/backend
+            cd ${{ secrets.PROJECT_DIR }}
             npm ci
-            npm run migrate # if you use database migrations
-            pm2 restart backend || pm2 start dist/index.js --name backend
+            npm run migrate # if you have migrations
+            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start dist/index.js --name ${{ secrets.PM2_APP_NAME }}
