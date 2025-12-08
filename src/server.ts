@@ -52,7 +52,7 @@ const limiter = rateLimit({
     max: 500, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later.'
 });
-app.use('/api/', limiter);
+app.use(limiter);
 
 // CORS
 app.use(cors());
@@ -82,18 +82,18 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/offices', officeRoutes);
-app.use('/api/agents', agentRoutes);
-app.use('/api/students', studentRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/chats', chatRoutes);
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/meta', metaRoutes);
-app.use('/api/learning-resources', learningResourceRoutes);
+app.use('/auth', authRoutes);
+app.use('/offices', officeRoutes);
+app.use('/agents', agentRoutes);
+app.use('/students', studentRoutes);
+app.use('/courses', courseRoutes);
+app.use('/applications', applicationRoutes);
+app.use('/payments', paymentRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/chats', chatRoutes);
+app.use('/announcements', announcementRoutes);
+app.use('/meta', metaRoutes);
+app.use('/learning-resources', learningResourceRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
